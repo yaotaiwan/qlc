@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QLC Protocol - Live Match Demo</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #38bdf8;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #4ade80;
+            --border: #334155;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+        h1 { font-size: 1.5rem; margin-bottom: 5px; color: var(--accent); }
+        p.subtitle { color: var(--text-muted); font-size: 0.9rem; margin-top: 0; margin-bottom: 20px; }
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        h2 { font-size: 1.1rem; margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .matrix-btn {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 12px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .matrix-btn.active {
+            background-color: var(--accent);
+            color: var(--bg-color);
+            border-color: var(--accent);
+        }
+        .code-output {
+            background-color: #020617;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            color: var(--success);
+            word-break: break-all;
+            font-size: 0.85rem;
+            margin-top: 10px;
+        }
+        button.action-btn {
+            width: 100%;
+            background-color: var(--accent);
+            color: var(--bg-color);
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button.action-btn:hover { opacity: 0.9; }
+        .result-box {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #020617;
+            border: 1px dashed var(--border);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>QLC Protocol</h1>
+    <p class="subtitle">Decentralized Client-Side Bitwise Matching Engine</p>
+
+    <!-- 使用者 A 面板 -->
+    <div class="card">
+        <h2>👤 Profile A (求職者 / 發布端)</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">點擊勾選你的 16 碼核心屬性：</p>
+        <div class="matrix-grid" id="gridA">
+            <!-- 透過 JS 動態生成 16 個方格 -->
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);">QLC 基因字串 (Hex):</div>
+        <div class="code-output" id="codeA">0x0000</div>
+    </div>
+
+    <!-- 使用者 B 面板 -->
+    <div class="card">
+        <h2>🏢 Profile B (招募方 / 需求端)</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">設定你想尋找的目標條件：</p>
+        <div class="matrix-grid" id="gridB">
+            <!-- 透過 JS 動態生成 16 個方格 -->
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);">QLC 基因字串 (Hex):</div>
+        <div class="code-output" id="codeB">0x0000</div>
+    </div>
+
+    <!-- 比對按鈕與結果 -->
+    <div class="card">
+        <h2>⚡ 0.001s Local Match (本地端瞬時配對)</h2>
+        <button class="action-btn" onclick="runMatch()">執行雙向位元比對 (Compute Match)</button>
+        <div style="margin-top: 15px;" class="result-box" id="matchResult">
+            等待比對...
+        </div>
+    </div>
+</div>
+
+<script>
+    // 初始化 16 個位元開關狀態
+    let stateA = new Array(16).fill(0);
+    let stateB = new Array(16).fill(0);
+
+    function renderGrids() {
+        const gridA = document.getElementById('gridA');
+        const gridB = document.getElementById('gridB');
+        gridA.innerHTML = '';
+        gridB.innerHTML = '';
+
+        for (let i = 0; i < 16; i++) {
+            // Grid A 按鈕
+            const btnA = document.createElement('button');
+            btnA.className = `matrix-btn ${stateA[i] ? 'active' : ''}`;
+            btnA.innerText = `#${i+1}`;
+            btnA.onclick = () => {
+                stateA[i] = stateA[i] ? 0 : 1;
+                renderGrids();
+            };
+            gridA.appendChild(btnA);
+
+            // Grid B 按鈕
+            const btnB = document.createElement('button');
+            btnB.className = `matrix-btn ${stateB[i] ? 'active' : ''}`;
+            btnB.innerText = `#${i+1}`;
+            btnB.onclick = () => {
+                stateB[i] = stateB[i] ? 0 : 1;
+                renderGrids();
+            };
+            gridB.appendChild(btnB);
+        }
+
+        // 更新二進位十六進位代碼顯示
+        updateCodes();
+    }
+
+    function arrayToBitmask(arr) {
+        let val = 0;
+        for (let i = 0; i < arr.length; i++) {
+            if (arr[i]) val |= (1 << i);
+        }
+        return '0x' + val.toString(16).toUpperCase().padStart(4, '0');
+    }
+
+    function updateCodes() {
+        document.getElementById('codeA').innerText = arrayToBitmask(stateA);
+        document.getElementById('codeB').innerText = arrayToBitmask(stateB);
+    }
+
+    function runMatch() {
+        let maskA = 0;
+        let maskB = 0;
+        for (let i = 0; i < 16; i++) {
+            if (stateA[i]) maskA |= (1 << i);
+            if (stateB[i]) maskB |= (1 << i);
+        }
+
+        // 核心位元運算
+        let intersection = maskA & maskB;
+        let union = maskA | maskB;
+
+        let score = 0;
+        if (union > 0) {
+            let matchedBits = countBits(intersection);
+            let totalNeededBits = countBits(maskB); // 以 B 的需求為基準
+            score = totalNeededBits > 0 ? Math.round((matchedBits / totalNeededBits) * 100) : 100;
+        } else {
+            score = 100; // 雙方皆空
+        }
+
+        const resultBox = document.getElementById('matchResult');
+        if (score >= 80) {
+            resultBox.innerHTML = `🟢 完美契合！匹配度：${score}%`;
+            resultBox.style.color = 'var(--success)';
+        } else if (score >= 40) {
+            resultBox.innerHTML = `🟡 部分交集，匹配度：${score}%`;
+            resultBox.style.color = '#facc15';
+        } else {
+            resultBox.innerHTML = `🔴 差異過大，匹配度：${score}%`;
+            resultBox.style.color = '#f87171';
+        }
+    }
+
+    function countBits(n) {
+        let count = 0;
+        while (n) {
+            count += n & 1;
+            n >>= 1;
+        }
+        return count;
+    }
+
+    // 初始化載入
+    renderGrids();
+</script>
+
+</body>
+</html>
