@@ -1,413 +1,148 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>滑雪資格與技術等級快速選擇器</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        darkbg: '#090d16',
-                        panelbg: 'rgba(21, 29, 46, 0.85)',
-                        snowcyan: '#38bdf8',
-                        snowblue: '#0284c7',
-                        accentgold: '#f59e0b'
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        html, body {
-            height: 100vh;
-            overflow: hidden;
-            background: linear-gradient(135deg, #090d16 0%, #111827 50%, #090d16 100%);
-            color: #f3f4f6;
-        }
-        .glass-panel {
-            background: rgba(17, 24, 39, 0.85);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .btn-tag {
-            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .btn-tag.active {
-            background-color: #38bdf8;
-            color: #0f172a;
-            font-weight: 700;
-            border-color: #7dd3fc;
-            box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>日本滑雪認證資格</title>
+<style>
+:root{--s0:#fff;--s1:#f5f4ef;--bd:rgba(0,0,0,.15);--bds:rgba(0,0,0,.3);--tx:#1a1a1a;--t2:#5f5e5a;--t3:#888780;--ac:#185fa5;--acbg:#e6f1fb;--acbd:#85b7eb;--dg:#a32d2d}
+@media (prefers-color-scheme:dark){:root{--s0:#262624;--s1:#1f1e1d;--bd:rgba(255,255,255,.15);--bds:rgba(255,255,255,.3);--tx:#f1efe8;--t2:#b4b2a9;--t3:#888780;--ac:#b5d4f4;--acbg:#0c447c;--acbd:#378add;--dg:#f09595}}
+*{box-sizing:border-box}
+body{margin:0;padding:12px;background:var(--s0);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","Hiragino Sans",sans-serif;font-size:16px;line-height:1.5;max-width:480px;margin:0 auto}
+button{font:inherit;color:inherit;background:transparent;border:.5px solid var(--bds);border-radius:8px;cursor:pointer;padding:6px 12px}
+button:active{transform:scale(.98)}
+textarea,input{font:inherit;color:inherit;background:var(--s0);border:.5px solid var(--bds);border-radius:8px;padding:6px 8px;width:100%}
+.card{background:var(--s1);border-radius:12px;padding:12px}
+.q-tab{flex:1;padding:8px 0;font-size:14px}
+.on{background:var(--acbg);color:var(--ac);border-color:var(--acbd)}
+.q-grp{width:100%;text-align:left;font-size:14px;font-weight:500;display:flex;justify-content:space-between;align-items:center;margin:0 0 8px}
+.q-chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
+.q-chip{padding:6px 12px;font-size:13px;border-radius:999px}
+.q-lab{font-size:12px;color:var(--t2);display:flex;justify-content:space-between;align-items:center;margin:0 0 4px}
+.q-mini{font-size:12px;padding:2px 10px}
+#lst{font-family:ui-monospace,Menlo,monospace;font-size:13px;resize:vertical;min-height:52px}
+#cde{font-family:ui-monospace,Menlo,monospace;font-size:16px;letter-spacing:2px;text-transform:uppercase}
+.desc{background:var(--s0);border:.5px solid var(--bd);border-radius:8px;padding:10px 12px;min-height:64px}
+</style>
 </head>
-<body class="p-3 sm:p-5 flex flex-col justify-between h-screen antialiased selection:bg-snowcyan selection:text-slate-900">
+<body>
+<div class="card">
+  <div style="font-size:15px;font-weight:500">日本滑雪認證資格</div>
+  <div style="font-size:12px;color:var(--t3);margin:0 0 10px">title placeholder</div>
 
-    <!-- Header (Compact Top Bar) -->
-    <header class="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-3 flex-shrink-0">
-        <div class="flex items-center space-x-2.5">
-            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-snowcyan to-blue-600 flex items-center justify-center text-slate-950 font-bold shadow-md shadow-snowcyan/20">
-                <i class="fa-solid fa-person-skiing text-sm"></i>
-            </div>
-            <div>
-                <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-2">
-                    日本 / 國際滑雪資格與技術等級速查器
-                </h1>
-            </div>
-        </div>
-        <button onclick="clearAll()" class="text-xs text-slate-400 hover:text-rose-400 transition flex items-center gap-1 bg-slate-900 px-2.5 py-1 rounded border border-slate-800">
-            <i class="fa-solid fa-arrow-rotate-left text-[10px]"></i>
-            <span>重置勾選</span>
-        </button>
-    </header>
+  <div class="q-lab"><span>List (type, paste or edit)</span>
+    <span><button class="q-mini" id="cpl">Copy</button> <button class="q-mini" id="clr">Clear</button></span></div>
+  <textarea id="lst" rows="2" placeholder="SAJ1, SAJ2, CSIA3"></textarea>
 
-    <!-- Main Content Grid (Fixed Height Viewport Layout) -->
-    <main class="grid grid-cols-1 md:grid-cols-3 gap-3 flex-grow overflow-hidden mb-3">
+  <div class="q-lab" style="margin-top:8px"><span>Code (type or paste)</span>
+    <span><button class="q-mini" id="cpc">Copy</button></span></div>
+  <input id="cde" type="text" autocomplete="off" spellcheck="false">
 
-        <!-- Column 1: 日本本土體系 (SAJ / JSBA) -->
-        <div class="glass-panel rounded-xl p-3 flex flex-col justify-between overflow-hidden border-t-2 border-t-snowcyan">
-            <div>
-                <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800">
-                    <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-                        <span class="text-sm">🇯🇵</span> 日本本土體系 (SAJ/JSBA)
-                    </span>
-                    <button onclick="toggleSection('japan')" class="text-[11px] text-snowcyan hover:underline font-medium">
-                        <i class="fa-solid fa-check-double text-[9px] mr-1"></i>全選
-                    </button>
-                </div>
-                <div class="grid grid-cols-2 gap-1.5" id="group-japan">
-                    <!-- Buttons JS injected -->
-                </div>
-            </div>
-            <div class="mt-2 text-[11px] text-slate-500 italic flex items-center gap-1">
-                <i class="fa-solid fa-circle-info text-[10px] text-snowcyan"></i>
-                <span>注重動作標準度與日系指導理論</span>
-            </div>
-        </div>
+  <div style="display:flex;justify-content:space-between;font-size:12px;margin:6px 0 12px">
+    <span id="msg" style="color:var(--t2)"></span><span id="cnt" style="color:var(--t2)"></span></div>
 
-        <!-- Column 2: 國際認證體系 (CASI / CSIA / NZSIA) -->
-        <div class="glass-panel rounded-xl p-3 flex flex-col justify-between overflow-hidden border-t-2 border-t-sky-500">
-            <div>
-                <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800">
-                    <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-                        <span class="text-sm">🌐</span> 國際認證體系 (CASI/CSIA)
-                    </span>
-                    <button onclick="toggleSection('intl')" class="text-[11px] text-snowcyan hover:underline font-medium">
-                        <i class="fa-solid fa-check-double text-[9px] mr-1"></i>全選
-                    </button>
-                </div>
-                <div class="grid grid-cols-2 gap-1.5" id="group-intl">
-                    <!-- Buttons JS injected -->
-                </div>
-            </div>
-            <div class="mt-2 text-[11px] text-slate-500 italic flex items-center gap-1">
-                <i class="fa-solid fa-circle-info text-[10px] text-snowcyan"></i>
-                <span>英語教學通用、學生中心導向</span>
-            </div>
-        </div>
+  <div style="display:flex;gap:8px;margin:0 0 12px">
+    <button class="q-tab on" id="t-jp">日本 Japan</button>
+    <button class="q-tab" id="t-in">國際 International</button>
+  </div>
+  <div id="body"></div>
+  <div class="desc">
+    <div id="dt" style="font-size:13px;font-weight:500;margin:0 0 2px">Description</div>
+    <div id="dd" style="font-size:13px;color:var(--t2);line-height:1.5">Tap a group button or an item to see its description.</div>
+  </div>
+</div>
 
-        <!-- Column 3: 技術級別檢定 (Badges & Tech) -->
-        <div class="glass-panel rounded-xl p-3 flex flex-col justify-between overflow-hidden border-t-2 border-t-amber-500">
-            <div>
-                <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800">
-                    <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-                        <span class="text-sm">⛷️</span> 技術級別檢定 (Badges)
-                    </span>
-                    <button onclick="toggleSection('tech')" class="text-[11px] text-amber-400 hover:underline font-medium">
-                        <i class="fa-solid fa-check-double text-[9px] mr-1"></i>全選
-                    </button>
-                </div>
-                <div class="grid grid-cols-2 gap-1.5" id="group-tech">
-                    <!-- Buttons JS injected -->
-                </div>
-            </div>
-            <div class="mt-2 text-[11px] text-amber-400/80 font-medium flex items-center gap-1">
-                <i class="fa-solid fa-shield-halved text-[10px]"></i>
-                <span>【純技術滑行，無考取教學資格】</span>
-            </div>
-        </div>
+<script>
+var D={
+jp:[
+{n:'SAJ 級別檢定 1–5',d:'全日本スキー連盟的技術檢定（badge test）。1–5 級是滑雪技術考核，不等於教練資格；5 級最基礎，1 級最高。',items:[
+['SAJ5','5 級：プルークボーゲン，緩斜面。'],
+['SAJ4','4 級：プルークボーゲン節奏變化，緩斜面。'],
+['SAJ3','3 級：基礎平行轉彎＋シュテムボーゲン，緩至中斜面。'],
+['SAJ2','2 級：總合滑降，需通過規程檢定。'],
+['SAJ1','1 級：需先取得 2 級並上完事前講習。']]},
+{n:'SAJ 公認指導者（暫定命名）',d:'SAJ 公認的指導員資格，需養成講習、實技與理論測驗。縮寫是暫擬，待確認。',items:[
+['SAJ-SI','公認スキー準指導員（暫擬縮寫）。'],
+['SAJ-I','公認スキー指導員（暫擬縮寫）。']]}],
+intl:[
+{n:'CSIA 加拿大',d:'Canadian Ski Instructors’ Alliance，Level 1–4。',items:[
+['CSIA1','CSIA Level 1。'],['CSIA2','CSIA Level 2。'],
+['CSIA3','CSIA Level 3，通常對應國際 ISIA 認可。'],['CSIA4','CSIA Level 4，最高級。']]},
+{n:'BASI 英國',d:'British Association of Snowsport Instructors，Level 1–4。',items:[
+['BASI1','BASI Level 1。'],['BASI2','BASI Level 2。'],
+['BASI3','BASI Level 3，附 ISIA。'],['BASI4','BASI Level 4。']]},
+{n:'NZSIA 紐西蘭',d:'NZ Snowsports Instructors Alliance，Level 1–3；在日本二世谷、妙高有培訓課程。',items:[
+['NZSIA1','NZSIA Level 1，入門。'],['NZSIA2','NZSIA Level 2。'],
+['NZSIA3','NZSIA Level 3，可換發 ISIA。']]},
+{n:'APSI 澳洲',d:'Australian Professional Snowsports Instructors；近年等級改名，查閱時留意新舊級別。',items:[
+['APSI1','APSI Level 1（新制入門）。'],['APSI2','APSI Level 2。'],
+['APSI3','APSI Level 3，國際 ISIA 認可。'],['APSI4','APSI Level 4，最高。']]}]};
 
-    </main>
+var ALL=[],cur='jp',sel={},tabs={jp:'t-jp',intl:'t-in'};
+['jp','intl'].forEach(function(t){D[t].forEach(function(g){g.items.forEach(function(i){ALL.push(i[0])})})});
+var N=ALL.length,L=Math.ceil(N*Math.LN2/Math.log(36));
+var $=function(i){return document.getElementById(i)};
+var MAP={};ALL.forEach(function(k,i){MAP[k]=i;MAP[k.replace('-','')]=i});
 
-    <!-- Middle: Smart Dynamic Info Box -->
-    <div class="glass-panel rounded-xl p-3 mb-3 flex-shrink-0 relative overflow-hidden border border-slate-800">
-        <div id="smart-info" class="text-xs leading-relaxed text-slate-300">
-            <!-- Dynamic context via JS -->
-        </div>
-    </div>
+function toCode(){var v=0;ALL.forEach(function(k,i){if(sel[k])v+=Math.pow(2,i)});
+  var s=v.toString(36).toUpperCase();while(s.length<L)s='0'+s;return s}
+function toList(){return ALL.filter(function(k){return sel[k]})}
+function groupOn(g){return g.items.every(function(i){return sel[i[0]]})}
+function say(t,d){$('dt').textContent=t;$('dd').textContent=d}
+function msg(t,bad){$('msg').textContent=t;$('msg').style.color=bad?'var(--dg)':'var(--t2)'}
 
-    <!-- Bottom: Summary & Base32 Compressed Code Bar -->
-    <footer class="glass-panel rounded-xl p-3 flex-shrink-0 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-slate-950/80 border border-slate-800">
-        
-        <!-- Readable Selected Tags String -->
-        <div class="flex-grow flex items-center gap-2 overflow-hidden">
-            <span class="text-xs text-slate-400 flex-shrink-0 font-medium">勾選清單:</span>
-            <div id="readable-tags" class="text-xs font-mono text-snowcyan truncate bg-slate-900/90 px-2.5 py-1.5 rounded border border-slate-800/80 flex-grow">
-                (未勾選項目)
-            </div>
-        </div>
+function sync(src){
+  var l=toList();
+  if(src!=='lst')$('lst').value=l.join(', ');
+  if(src!=='cde')$('cde').value=toCode();
+  $('cnt').textContent=l.length+' / '+N+' selected · '+L+'-char code';
+  renderBody();
+}
+function renderBody(){
+  var b=$('body');b.innerHTML='';
+  D[cur].forEach(function(g){
+    var gb=document.createElement('button');
+    gb.className='q-grp'+(groupOn(g)?' on':'');
+    gb.innerHTML='<span>'+g.n+'</span><span style="font-size:12px;font-weight:400">'+(groupOn(g)?'clear all':'select all')+'</span>';
+    gb.onclick=function(){var on=!groupOn(g);
+      g.items.forEach(function(i){if(on)sel[i[0]]=1;else delete sel[i[0]]});
+      say(g.n,g.d);msg('');sync()};
+    b.appendChild(gb);
+    var c=document.createElement('div');c.className='q-chips';
+    g.items.forEach(function(i){
+      var x=document.createElement('button');
+      x.className='q-chip'+(sel[i[0]]?' on':'');x.textContent=i[0];
+      x.onclick=function(){if(sel[i[0]])delete sel[i[0]];else sel[i[0]]=1;
+        say(i[0],i[1]);msg('');sync()};
+      c.appendChild(x)});
+    b.appendChild(c)})
+}
 
-        <!-- Base32 State Code Box & Input Restore -->
-        <div class="flex items-center gap-2 flex-shrink-0">
-            <div class="flex items-center gap-1.5 bg-slate-900 px-2.5 py-1 rounded border border-slate-800">
-                <span class="text-[11px] text-slate-400 font-mono">編碼:</span>
-                <span id="base32-code" class="text-sm font-bold font-mono text-amber-400 tracking-wider">0000</span>
-                <button onclick="copyCode()" title="複製代碼" class="text-slate-400 hover:text-white p-1 text-xs">
-                    <i class="fa-solid fa-copy"></i>
-                </button>
-            </div>
+$('lst').addEventListener('input',function(){
+  var toks=this.value.split(/[\s,，、]+/).filter(Boolean),bad=[],ns={};
+  toks.forEach(function(t){var k=t.toUpperCase();
+    if(MAP[k]===undefined)bad.push(t);else ns[ALL[MAP[k]]]=1});
+  sel=ns;msg(bad.length?'Not in list: '+bad.join(', '):'',bad.length);sync('lst')});
 
-            <div class="flex items-center gap-1">
-                <input type="text" id="restore-input" placeholder="貼上 4 位代碼還原" 
-                       class="w-28 text-xs font-mono bg-slate-900 border border-slate-700 text-slate-200 px-2 py-1.5 rounded focus:outline-none focus:border-snowcyan uppercase placeholder:text-slate-600">
-                <button onclick="restoreFromCode()" class="bg-snowblue hover:bg-sky-400 text-slate-950 font-bold text-xs px-2.5 py-1.5 rounded transition">
-                    還原
-                </button>
-            </div>
-        </div>
+$('cde').addEventListener('input',function(){
+  var v=this.value.trim().toUpperCase();
+  if(!v){sel={};msg('');sync('cde');return}
+  if(!/^[0-9A-Z]+$/.test(v)){msg('Use letters A–Z and digits only.',1);return}
+  if(v.length!==L){msg('Code should be '+L+' characters.',1);return}
+  var n=parseInt(v,36);
+  if(n>=Math.pow(2,N)){msg('That code is out of range.',1);return}
+  var ns={};ALL.forEach(function(k,i){if(Math.floor(n/Math.pow(2,i))%2===1)ns[k]=1});
+  sel=ns;msg('');sync('cde')});
 
-    </footer>
-
-    <script>
-        // 16-bit Items Definition
-        const items = [
-            // Japan System (0~4)
-            { id: 0, group: 'japan', code: 'SAJ-準指', full: 'SAJ 公認準指導員', desc: '【日本本土】具備 SAJ 1級後考取。主要在日本滑雪場進行基礎至中級雙板/單板滑雪教學。' },
-            { id: 1, group: 'japan', code: 'SAJ-正指', full: 'SAJ 公認正指導員', desc: '【日本本土】SAJ 高階指導員，具備考官資格與示範精密不整雪/小彎極致技術之能力。' },
-            { id: 2, group: 'japan', code: 'JSBA-C', full: 'JSBA C級指導員', desc: '【日本單板】需先考取 JSBA 1級徽章。日本單板協會基礎初級教練認證。' },
-            { id: 3, group: 'japan', code: 'JSBA-B', full: 'JSBA B級指導員', desc: '【日本單板】JSBA 中階教練，具備 Badge 技能檢定考官資格，精通動態 Carving 刻滑。' },
-            { id: 4, group: 'japan', code: 'JSBA-A', full: 'JSBA A級指導員', desc: '【日本單板】JSBA 頂級指導員與高階培訓官，負責考核 B/C 級教練。' },
-
-            // International System (5~9)
-            { id: 5, group: 'intl', code: 'CASI-1~4', full: 'CASI 加拿大單板教練 (Level 1~4)', desc: '【國際通用】加拿大單板指導員體系。Level 1為初級教練，Level 4為最高考官級。' },
-            { id: 6, group: 'intl', code: 'CSIA-1~4', full: 'CSIA 加拿大雙板教練 (Level 1~4)', desc: '【國際通用】加拿大雙板指導員體系。重視併板流暢度與學生中心教學法。' },
-            { id: 7, group: 'intl', code: 'NZSIA-1~3', full: 'NZSIA 紐西蘭滑雪教練 (Level 1~3)', desc: '【國際通用】紐西蘭單/雙板指導員體系。在紐澳與日本外國人雪場公信力極高。' },
-            { id: 8, group: 'intl', code: 'APSI-1~4', full: 'APSI 澳洲滑雪教練 (Level 1~4)', desc: '【國際通用】澳洲職業滑雪指導員協會認證，雙棲南半球與日本雪季教練常用。' },
-            { id: 9, group: 'intl', code: 'COACH', full: '競賽/競技選手教練 (Coach)', desc: '【選手培訓】非一般滑雪遊客指導員，專門帶領競賽選手、Park極限地形或考官訓練者。' },
-
-            // Tech Badges System (10~15)
-            { id: 10, group: 'tech', code: 'SAJ-1級', full: 'SAJ 技能檢定 1 級', desc: '【技術檢定】日本雙板玩家重要技術指標。測試長彎、短ターン及不整雪(Mogul)饅頭滑行。' },
-            { id: 11, group: 'tech', code: 'SAJ-2~5級', full: 'SAJ 技能檢定 2~5 級', desc: '【技術檢定】SAJ 基礎至中級技術認證，適合一般愛好者檢測自我控板程度。' },
-            { id: 12, group: 'tech', code: 'SAJ-Crown', full: 'SAJ クラウン/テック (Crown/Tech)', desc: '【頂尖技術】SAJ 最高等級技術檢定（超越 1 級），要求極高速度下的絕對控板與穩定度。' },
-            { id: 13, group: 'tech', code: 'JSBA-1級', full: 'JSBA 徽章檢定 1 級', desc: '【技術檢定】日本單板玩家技術標籤。要求陡坡高壓刻滑與無推雪精準刃角，考 C 指前置。' },
-            { id: 14, group: 'tech', code: 'JSBA-2~5級', full: 'JSBA 徽章檢定 2~5 級', desc: '【技術檢定】JSBA 單板基礎至中級技術證明。' },
-            { id: 15, group: 'tech', code: 'JSBA-Tech', full: 'JSBA Tech Test (テックテスト)', desc: '【頂尖技術】JSBA 頂級單板平滑與刻滑高壓測試，日本單板技術流玩家的最高榮譽之一。' }
-        ];
-
-        // State Array: 16 bits
-        let bitState = new Array(16).fill(0);
-        let activeHoverId = null;
-
-        // Custom Crockford-like Base32 Charset for 4-char encoding
-        const BASE32_ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
-
-        window.onload = function() {
-            renderButtons();
-            updateUI();
-        };
-
-        // Render Button Grid
-        function renderButtons() {
-            const groupJapan = document.getElementById('group-japan');
-            const groupIntl = document.getElementById('group-intl');
-            const groupTech = document.getElementById('group-tech');
-
-            groupJapan.innerHTML = '';
-            groupIntl.innerHTML = '';
-            groupTech.innerHTML = '';
-
-            items.forEach(item => {
-                const isSelected = bitState[item.id] === 1;
-                const btn = document.createElement('button');
-                
-                btn.className = `btn-tag text-xs py-2 px-1.5 rounded-lg border text-center font-semibold truncate transition ${
-                    isSelected 
-                        ? 'active' 
-                        : 'bg-slate-900/80 text-slate-300 border-slate-800 hover:border-slate-600 hover:text-white'
-                }`;
-                btn.innerText = item.code;
-                btn.onclick = () => toggleBit(item.id);
-                btn.onmouseenter = () => hoverInfo(item.id);
-                btn.onmouseleave = () => hoverInfo(null);
-
-                if (item.group === 'japan') groupJapan.appendChild(btn);
-                if (item.group === 'intl') groupIntl.appendChild(btn);
-                if (item.group === 'tech') groupTech.appendChild(btn);
-            });
-        }
-
-        // Toggle Single Bit
-        function toggleBit(id) {
-            bitState[id] = bitState[id] === 1 ? 0 : 1;
-            renderButtons();
-            updateUI();
-        }
-
-        // Section Select All / Deselect All
-        function toggleSection(groupName) {
-            const groupItems = items.filter(i => i.group === groupName);
-            const allSelected = groupItems.every(i => bitState[i.id] === 1);
-            
-            groupItems.forEach(i => {
-                bitState[i.id] = allSelected ? 0 : 1;
-            });
-
-            renderButtons();
-            updateUI();
-        }
-
-        // Clear All Selections
-        function clearAll() {
-            bitState.fill(0);
-            renderButtons();
-            updateUI();
-        }
-
-        // Mouse Hover Information
-        function hoverInfo(id) {
-            activeHoverId = id;
-            updateSmartInfo();
-        }
-
-        // Dynamic Smart Info Display
-        function updateSmartInfo() {
-            const infoBox = document.getElementById('smart-info');
-
-            if (activeHoverId !== null) {
-                const item = items[activeHoverId];
-                infoBox.innerHTML = `
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="font-bold text-white text-xs">${item.full}</span>
-                        <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-snowcyan border border-slate-700">${item.code}</span>
-                    </div>
-                    <p class="text-slate-300 text-[11px] leading-relaxed">${item.desc}</p>
-                `;
-            } else {
-                const selectedCount = bitState.reduce((a, b) => a + b, 0);
-                if (selectedCount === 0) {
-                    infoBox.innerHTML = `
-                        <div class="text-slate-400 text-xs flex items-center gap-2">
-                            <i class="fa-solid fa-hand-pointer text-snowcyan"></i>
-                            <span>點擊或懸停於縮寫按鈕上，查看該資格全稱與技術門檻；點選按鈕即可產生下方速查代碼。</span>
-                        </div>
-                    `;
-                } else {
-                    infoBox.innerHTML = `
-                        <div class="text-slate-300 text-xs">
-                            <span class="text-snowcyan font-bold">已選擇 ${selectedCount} 項資格／等級認證。</span> 
-                            <span>下方已同步更新字串清單與 4 位 Base32 狀態代碼。</span>
-                        </div>
-                    `;
-                }
-            }
-        }
-
-        // Convert 16-bit Array to 4-char Base32
-        function encodeBase32(bits) {
-            let num = 0;
-            for (let i = 0; i < 16; i++) {
-                if (bits[i] === 1) {
-                    num |= (1 << i);
-                }
-            }
-
-            // Encode 16-bit integer into 4 Base32 chars (4 * 5 bits = 20 bits capacity)
-            let code = "";
-            for (let i = 0; i < 4; i++) {
-                let index = (num >> (i * 4)) & 0x0F; // Use 16-hex mapping for exact 4-char fit
-                code = BASE32_ALPHABET[index] + code;
-            }
-            return code;
-        }
-
-        // Decode 4-char Base32 string to 16-bit Array
-        function decodeBase32(codeStr) {
-            codeStr = codeStr.trim().toUpperCase();
-            if (codeStr.length !== 4) return null;
-
-            let num = 0;
-            for (let i = 0; i < 4; i++) {
-                const char = codeStr[3 - i];
-                const index = BASE32_ALPHABET.indexOf(char);
-                if (index === -1 || index > 15) return null; // Out of 16-hex range
-                num |= (index << (i * 4));
-            }
-
-            const newBits = new Array(16).fill(0);
-            for (let i = 0; i < 16; i++) {
-                if ((num & (1 << i)) !== 0) {
-                    newBits[i] = 1;
-                }
-            }
-            return newBits;
-        }
-
-        // Update All UI Displays
-        function updateUI() {
-            // Update Tag String
-            const selectedCodes = items.filter(i => bitState[i.id] === 1).map(i => i.code);
-            const readableBox = document.getElementById('readable-tags');
-            
-            if (selectedCodes.length === 0) {
-                readableBox.innerText = "(未勾選項目)";
-                readableBox.classList.add('text-slate-600');
-                readableBox.classList.remove('text-snowcyan');
-            } else {
-                readableBox.innerText = selectedCodes.join(' / ');
-                readableBox.classList.remove('text-slate-600');
-                readableBox.classList.add('text-snowcyan');
-            }
-
-            // Update Base32 Code
-            const base32Code = encodeBase32(bitState);
-            document.getElementById('base32-code').innerText = base32Code;
-
-            updateSmartInfo();
-        }
-
-        // Restore Selection from Input
-        function restoreFromCode() {
-            const input = document.getElementById('restore-input').value;
-            const decoded = decodeBase32(input);
-            
-            if (decoded) {
-                bitState = decoded;
-                renderButtons();
-                updateUI();
-                document.getElementById('restore-input').value = '';
-            } else {
-                alert('請輸入有效的 4 位數代碼！');
-            }
-        }
-
-        // Copy Base32 Code
-        function copyCode() {
-            const code = document.getElementById('base32-code').innerText;
-            const temp = document.createElement('textarea');
-            temp.value = code;
-            document.body.appendChild(temp);
-            temp.select();
-            document.execCommand('copy');
-            document.body.removeChild(temp);
-
-            const codeSpan = document.getElementById('base32-code');
-            const original = codeSpan.innerText;
-            codeSpan.innerText = 'COPIED!';
-            setTimeout(() => {
-                codeSpan.innerText = original;
-            }, 1000);
-        }
-    </script>
+$('clr').onclick=function(){sel={};msg('');sync()};
+function cp(id,btn){var el=$(id);el.select();
+  try{navigator.clipboard.writeText(el.value);btn.textContent='Copied'}catch(e){btn.textContent='Selected'}
+  setTimeout(function(){btn.textContent='Copy'},1200)}
+$('cpl').onclick=function(){cp('lst',this)};
+$('cpc').onclick=function(){cp('cde',this)};
+Object.keys(tabs).forEach(function(k){$(tabs[k]).onclick=function(){
+  cur=k;Object.keys(tabs).forEach(function(j){$(tabs[j]).className='q-tab'+(j===k?' on':'')});renderBody()}});
+sync();
+</script>
 </body>
 </html>
