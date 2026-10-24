@@ -16,8 +16,9 @@ h1{margin:0;font-size:18px}
 .tabs{display:flex;gap:4px}
 .tabs button{flex:1;padding:9px 0;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;font-size:14px}
 .tabs button.on{background:var(--acc);border-color:var(--acc);color:#fff}
-main{padding:6px 14px 24px}
+main{padding:2px 14px 24px}
 .panel{display:none}.panel.on{display:block}
+h2{margin:14px 0 6px;font-size:13px;font-weight:500;color:var(--sub)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px}
 .grid button{padding:9px 2px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;font-size:13px;line-height:1.3}
 .grid button.s{background:var(--accbg);border-color:var(--acc);color:var(--acc);font-weight:600}
@@ -38,13 +39,28 @@ textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px
 
 <script>
 const D={
-雪山:'雪山,雪山北峰,雪山東峰,中雪山,大雪山,頭鷹山,大劍山,劍山,佳陽山,志佳陽大山,火石山,品田山,池有山,桃山,喀拉業山,大霸尖山,小霸尖山,伊澤山,加利山,閂山,鈴鳴山,白姑大山',
-玉山:'玉山,玉山東峰,玉山北峰,玉山南峰,玉山西峰,玉山前峰,南玉山,東小南山,鹿山',
-中央北:'南湖大山,南湖大山東峰,南湖大山南峰,南湖北山,審馬陣山,馬比杉山,巴巴山,無明山,中央尖山,馬西山,奇萊北峰,奇萊主山,奇萊南峰,太魯閣大山,立霧主山,光頭山,磐石山,喀西帕南山,甘薯峰,能高山,能高山南峰,南華山,屏風山,合歡山,合歡山東峰,北合歡山,西合歡山,石門山,畢祿山,羊頭山,帕托魯山,郡大山,卓社大山,萬東山西峰,東郡大山,八通關山,西巒大山',
-中央南:'秀姑巒山,馬博拉斯山,關山,大水窟山,向陽山,雲峰,馬利加南山,三叉山,東巒大山,南雙頭山,新康山,丹大山,卑南主山,干卓萬山,轆轆山,內嶺爾山,小關山,義西請馬至山,牧山,無雙山,塔關山,達芬尖山,關山嶺山,海諾南山,庫哈諾辛山,白石山,北大武山,塔芬山,安東軍山,布拉克桑山,駒盆山,六順山'};
-const ALIAS={玉山主峰:'玉山',雪山主峰:'雪山',合歡山主峰:'合歡山',合歡山北峰:'北合歡山',合歡北峰:'北合歡山',合歡東峰:'合歡山東峰',南湖東峰:'南湖大山東峰',南湖南峰:'南湖大山南峰',奇萊主峰:'奇萊主山',北大武:'北大武山'};
-const G=Object.keys(D).map(k=>({k,n:D[k].split(',')}));
-const ALL=G.flatMap(g=>g.n),N=ALL.length;
+玉雪:[
+ ['雪山山脈','雪山,雪山北峰,雪山東峰,中雪山,大雪山,頭鷹山,大劍山,劍山,佳陽山,志佳陽大山,火石山,品田山,池有山,桃山,喀拉業山,大霸尖山,小霸尖山,伊澤山,加利山'],
+ ['玉山山脈','玉山,玉山東峰,玉山北峰,玉山南峰,玉山西峰,玉山前峰,南玉山,東小南山,鹿山']],
+中央北:[
+ ['合歡群峰','合歡山,合歡山東峰,北合歡山,西合歡山,石門山'],
+ ['北一段','南湖大山,南湖大山東峰,南湖大山南峰,南湖北山,審馬陣山,馬比杉山,巴巴山,中央尖山'],
+ ['北二段','閂山,鈴鳴山,甘薯峰,無明山'],
+ ['中橫四辣','畢祿山,羊頭山,屏風山,白姑大山'],
+ ['奇萊','奇萊北峰,奇萊主山,奇萊南峰,磐石山'],
+ ['能高安東軍','能高山,能高山南峰,南華山,光頭山,白石山,安東軍山'],
+ ['其他','太魯閣大山,立霧主山,喀西帕南山,帕托魯山,馬西山']],
+中央南:[
+ ['干卓萬群峰','干卓萬山,卓社大山,萬東山西峰,郡大山,牧山'],
+ ['八通關·秀姑巒','八通關山,西巒大山,秀姑巒山,馬博拉斯山,馬利加南山,新康山,駒盆山,六順山'],
+ ['南三段','丹大山,內嶺爾山,義西請馬至山,東郡大山,東巒大山,無雙山'],
+ ['南二段','向陽山,三叉山,南雙頭山,雲峰,轆轆山,塔芬山,達芬尖山,大水窟山'],
+ ['南一段','關山,小關山,海諾南山,卑南主山,關山嶺山,塔關山,庫哈諾辛山'],
+ ['南端','北大武山,布拉克桑山']]};
+const ALIAS={玉山主峰:'玉山',雪山主峰:'雪山',合歡山主峰:'合歡山',合歡山北峰:'北合歡山',合歡北峰:'北合歡山',合歡東峰:'合歡山東峰',南湖東峰:'南湖大山東峰',南湖南峰:'南湖大山南峰',奇萊主峰:'奇萊主山',北大武:'北大武山',甘藷峰:'甘薯峰'};
+const ALL=[];
+Object.values(D).forEach(secs=>secs.forEach(s=>s[1].split(',').forEach(n=>ALL.push(n))));
+const N=ALL.length;
 const idx=new Map(ALL.map((n,i)=>[n,i]));
 const st=new Uint8Array(N);
 const $=s=>document.querySelector(s);
@@ -52,24 +68,102 @@ const tabsEl=$('#tabs'),main=$('#main');
 const btns=[];
 
 /* 頁面 */
-const names=['清單',...G.map(g=>g.k)];
+const names=['清單',...Object.keys(D)];
 const panels={};
 const lp=document.createElement('section');lp.className='panel';
 lp.innerHTML='<label><span>文字清單（可直接輸入、貼上）</span><button id="ct">複製</button></label><textarea id="tx" spellcheck="false"></textarea><div class="msg" id="mt"></div><label><span>代碼（base64）</span><button id="cc">複製</button></label><textarea id="cd" spellcheck="false"></textarea><div class="msg" id="mc"></div>';
 panels['清單']=lp;
-G.forEach(g=>{
+Object.keys(D).forEach(k=>{
   const p=document.createElement('section');p.className='panel';
-  const d=document.createElement('div');d.className='grid';
-  g.n.forEach(n=>{
-    const b=document.createElement('button');b.type='button';b.textContent=n;
-    b.onclick=()=>{st[idx.get(n)]^=1;sync()};
-    btns[idx.get(n)]=b;d.appendChild(b);
+  D[k].forEach(([title,list])=>{
+    const h=document.createElement('h2');h.textContent=title;p.appendChild(h);
+    const g=document.createElement('div');g.className='grid';
+    list.split(',').forEach(n=>{
+      const b=document.createElement('button');b.type='button';b.textContent=n;
+      b.onclick=()=>{st[idx.get(n)]^=1;sync()};
+      btns[idx.get(n)]=b;g.appendChild(b);
+    });
+    p.appendChild(g);
   });
-  p.appendChild(d);panels[g.k]=p;
+  panels[k]=p;
 });
 names.forEach(t=>{
   const b=document.createElement('button');b.type='button';b.textContent=t;
   b.onclick=()=>show(t);tabsEl.appendChild(b);main.appendChild(panels[t]);
 });
 function show(t){
-  [...tabsEl.children].
+  [...tabsEl.children].forEach(b=>b.classList.toggle('on',b.textContent===t));
+  names.forEach(n=>panels[n].classList.toggle('on',n===t));
+  scrollTo(0,0);
+}
+
+/* 代碼：[版本=1][數量][位元資料...][檢查碼] → base64 */
+const NB=Math.ceil(N/8);
+function enc(){
+  const a=new Uint8Array(3+NB);a[0]=1;a[1]=N;
+  for(let i=0;i<N;i++)if(st[i])a[2+(i>>3)]|=1<<(i&7);
+  let s=0;for(let i=0;i<2+NB;i++)s=(s+a[i])&255;a[2+NB]=s;
+  return btoa(String.fromCharCode(...a));
+}
+function dec(str){
+  try{
+    const r=atob(str.replace(/\s/g,'')),a=[...r].map(c=>c.charCodeAt(0));
+    if(a.length!==3+NB)return {e:'代碼長度不符，可能不完整'};
+    if(a[0]!==1)return {e:'代碼版本不符'};
+    if(a[1]!==N)return {e:'項目數量與目前清單不符'};
+    let s=0;for(let i=0;i<2+NB;i++)s=(s+a[i])&255;
+    if(s!==a[2+NB])return {e:'檢查碼錯誤，代碼可能被改動'};
+    const o=new Uint8Array(N);
+    for(let i=0;i<N;i++)o[i]=(a[2+(i>>3)]>>(i&7))&1;
+    return {o};
+  }catch(x){return {e:'代碼格式錯誤'}}
+}
+
+/* 進度徽章 */
+function badge(n){return n>=100?'🥇':n>=50?'🥈':n>=10?'🥉':n>=1?'🥾':'🏠'}
+
+const tx=$('#tx'),cd=$('#cd'),mt=$('#mt'),mc=$('#mc');
+function sync(skip){
+  let c=0;
+  for(let i=0;i<N;i++){btns[i].classList.toggle('s',!!st[i]);c+=st[i]}
+  $('#cnt').textContent=badge(c)+' '+c+'/'+N;
+  if(skip!=='tx')tx.value=ALL.filter((n,i)=>st[i]).join(',');
+  if(skip!=='cd')cd.value=enc();
+}
+
+/* 文字 → 狀態 */
+let t1,t2;
+function applyText(final){
+  const p=tx.value.split(/[,，、\s]+/).filter(Boolean).map(n=>ALIAS[n]||n);
+  const bad=p.filter(n=>!idx.has(n));
+  st.fill(0);p.forEach(n=>{if(idx.has(n))st[idx.get(n)]=1});
+  mt.textContent=bad.length?'找不到這些山名（已略過）：'+bad.join('、'):'';
+  sync(final&&!bad.length?undefined:'tx');
+}
+tx.addEventListener('input',()=>{clearTimeout(t1);t1=setTimeout(()=>applyText(false),600)});
+tx.addEventListener('blur',()=>{clearTimeout(t1);applyText(true)});
+
+/* 代碼 → 狀態（驗證成功才套用，空白不清除） */
+function applyCode(final){
+  const v=cd.value.trim();
+  if(!v){mc.textContent='';if(final)cd.value=enc();return}
+  const r=dec(v);
+  if(r.e){mc.textContent=r.e+'，已保留原選取';if(final)cd.value=enc();return}
+  mc.textContent='';st.set(r.o);sync('cd');
+}
+cd.addEventListener('input',()=>{clearTimeout(t2);t2=setTimeout(()=>applyCode(false),600)});
+cd.addEventListener('blur',()=>{clearTimeout(t2);applyCode(true)});
+
+/* 複製 */
+function copy(el,btn){
+  const t=el.value;
+  (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).catch(()=>{el.select();document.execCommand('copy')});
+  const o=btn.textContent;btn.textContent='已複製';setTimeout(()=>btn.textContent=o,1200);
+}
+$('#ct').onclick=e=>copy(tx,e.target);
+$('#cc').onclick=e=>copy(cd,e.target);
+
+show('清單');sync();
+</script>
+</body>
+</html>
