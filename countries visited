@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>去過的國家</title>
+<style>
+:root{--bg:#fff;--bg2:#f4f4f1;--tx:#1a1a1a;--tx2:#666;--bd:#d8d8d4;--ac:#185FA5;--acbg:#E6F1FB}
+@media(prefers-color-scheme:dark){:root{--bg:#1c1c1a;--bg2:#262624;--tx:#eee;--tx2:#aaa;--bd:#3e3e3a;--ac:#85B7EB;--acbg:#0C447C}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Noto Sans TC",sans-serif}
+#hd{position:sticky;top:0;z-index:5;background:var(--bg2);border-bottom:1px solid var(--bd);padding:10px 12px}
+.row{display:flex;align-items:center;gap:8px}
+button,input{font:inherit;color:var(--tx)}
+button{background:var(--bg);border:1px solid var(--bd);border-radius:8px;cursor:pointer}
+#hd button{height:34px;padding:0 10px;font-size:13px}
+#code{flex:1;min-width:0;height:34px;padding:0 8px;font:12px ui-monospace,monospace;background:var(--bg);border:1px solid var(--bd);border-radius:8px}
+main{max-width:720px;margin:0 auto;padding-bottom:40px}
+.pg{padding:16px 12px 4px;font-size:13px;color:var(--tx2)}
+.gh{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 12px;font-size:13px}
+.gh span{color:var(--tx2)}
+.gh button{height:26px;padding:0 8px;font-size:12px}
+.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;padding:0 12px 10px}
+.c{display:flex;justify-content:space-between;align-items:center;gap:4px;height:38px;padding:0 8px;font-size:14px;text-align:left}
+.c b{font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c i{font:11px ui-monospace,monospace;color:var(--tx2);font-style:normal}
+.c.on{background:var(--acbg);border-color:var(--ac);color:var(--ac)}
+.c.on i{color:var(--ac)}
+</style>
+</head>
+<body>
+<div id="hd">
+  <div class="row" style="justify-content:space-between;margin-bottom:8px">
+    <div>已選 <b id="n">0</b> / <span id="t"></span></div>
+    <div class="row"><button id="all">全選</button><button id="clr">清除</button></div>
+  </div>
+  <div class="row">
+    <input id="code" placeholder="貼上代碼可還原" spellcheck="false" autocapitalize="off" autocomplete="off">
+    <button id="cp">複製</button>
+    <button id="lk">連結</button>
+  </div>
+</div>
+<main id="body"></main>
+<script>
+/* 顯示用分組（不影響代碼）：地區 + 國家 */
+const D=[
+["東亞","TW 台灣;JP 日本;KR 南韓;KP 北韓;CN 中國;HK 香港;MO 澳門;MN 蒙古"],
+["東南亞","SG 新加坡;MY 馬來西亞;TH 泰國;VN 越南;KH 柬埔寨;LA 寮國;MM 緬甸;ID 印尼;PH 菲律賓;BN 汶萊;TL 東帝汶"],
+["南亞","IN 印度;PK 巴基斯坦;BD 孟加拉;LK 斯里蘭卡;NP 尼泊爾;BT 不丹;MV 馬爾地夫;AF 阿富汗"],
+["中亞","KZ 哈薩克;UZ 烏茲別克;TM 土庫曼;KG 吉爾吉斯;TJ 塔吉克"],
+["西亞","TR 土耳其;GE 喬治亞;AM 亞美尼亞;AZ 亞塞拜然;IR 伊朗;IQ 伊拉克;SY 敘利亞;LB 黎巴嫩;IL 以色列;PS 巴勒斯坦;JO 約旦;SA 沙烏地阿拉伯;AE 阿聯酋;QA 卡達;BH 巴林;KW 科威特;OM 阿曼;YE 葉門"],
+["西歐","GB 英國;IE 愛爾蘭;FR 法國;BE 比利時;NL 荷蘭;LU 盧森堡;DE 德國;AT 奧地利;CH 瑞士;LI 列支敦斯登;MC 摩納哥;JE 澤西島;GG 根西島;IM 曼島;FO 法羅群島;GI 直布羅陀"],
+["北歐","IS 冰島;NO 挪威;SE 瑞典;FI 芬蘭;DK 丹麥;EE 愛沙尼亞;LV 拉脫維亞;LT 立陶宛;AX 奧蘭群島;SJ 斯瓦巴"],
+["南歐","ES 西班牙;PT 葡萄牙;IT 義大利;VA 梵蒂岡;SM 聖馬利諾;MT 馬爾他;AD 安道爾;GR 希臘;CY 賽普勒斯;SI 斯洛維尼亞;HR 克羅埃西亞;BA 波士尼亞;RS 塞爾維亞;ME 蒙特內哥羅;MK 北馬其頓;AL 阿爾巴尼亞"],
+["東歐","PL 波蘭;CZ 捷克;SK 斯洛伐克;HU 匈牙利;RO 羅馬尼亞;BG 保加利亞;UA 烏克蘭;BY 白俄羅斯;MD 摩爾多瓦;RU 俄羅斯"],
+["北非","EG 埃及;LY 利比亞;TN 突尼西亞;DZ 阿爾及利亞;MA 摩洛哥;SD 蘇丹;SS 南蘇丹;EH 西撒哈拉"],
+["西非","NG 奈及利亞;GH 迦納;SN 塞內加爾;CI 象牙海岸;ML 馬利;BF 布吉納法索;NE 尼日;GN 幾內亞;GW 幾內亞比索;SL 獅子山;LR 賴比瑞亞;TG 多哥;BJ 貝南;GM 甘比亞;MR 茅利塔尼亞;CV 維德角;SH 聖赫勒拿"],
+["中非","CM 喀麥隆;TD 查德;CF 中非共和國;CG 剛果共和國;CD 剛果民主共和國;GA 加彭;GQ 赤道幾內亞;ST 聖多美普林西比;AO 安哥拉"],
+["東非","ET 衣索比亞;ER 厄利垂亞;DJ 吉布地;SO 索馬利亞;KE 肯亞;UG 烏干達;TZ 坦尚尼亞;RW 盧安達;BI 蒲隆地;MG 馬達加斯加;MU 模里西斯;SC 塞席爾;KM 葛摩;YT 馬約特;RE 留尼旺;IO 英屬印度洋領地"],
+["南部非洲","ZA 南非;NA 納米比亞;BW 波札那;ZW 辛巴威;ZM 尚比亞;MW 馬拉威;MZ 莫三比克;LS 賴索托;SZ 史瓦帝尼"],
+["北美","US 美國;CA 加拿大;MX 墨西哥;GL 格陵蘭;PM 聖皮埃與密克隆;BM 百慕達"],
+["中美","GT 瓜地馬拉;BZ 貝里斯;SV 薩爾瓦多;HN 宏都拉斯;NI 尼加拉瓜;CR 哥斯大黎加;PA 巴拿馬"],
+["加勒比海","CU 古巴;JM 牙買加;HT 海地;DO 多明尼加;PR 波多黎各;BS 巴哈馬;BB 巴貝多;TT 千里達及托巴哥;GD 格瑞那達;LC 聖露西亞;VC 聖文森;AG 安地卡及巴布達;DM 多米尼克;KN 聖克里斯多福及尼維斯;KY 開曼群島;TC 土克凱可群島;VG 英屬維京群島;VI 美屬維京群島;AI 安吉拉;MS 蒙哲臘;AW 阿魯巴;CW 古拉索;SX 荷屬聖馬丁;BQ 荷蘭加勒比區;GP 瓜地洛普;MQ 馬丁尼克;BL 聖巴瑟米;MF 法屬聖馬丁"],
+["南美","BR 巴西;AR 阿根廷;CL 智利;PE 秘魯;CO 哥倫比亞;VE 委內瑞拉;EC 厄瓜多;BO 玻利維亞;PY 巴拉圭;UY 烏拉圭;GY 蓋亞那;SR 蘇利南;GF 法屬圭亞那;FK 福克蘭群島"],
+["大洋洲","AU 澳洲;NZ 紐西蘭;PG 巴布亞紐幾內亞;FJ 斐濟;SB 索羅門群島;VU 萬那杜;NC 新喀里多尼亞;PF 法屬玻里尼西亞;WS 薩摩亞;TO 東加;KI 吉里巴斯;TV 吐瓦魯;NR 諾魯;FM 密克羅尼西亞;MH 馬紹爾群島;PW 帛琉;GU 關島;MP 北馬里亞納;AS 美屬薩摩亞;CK 庫克群島;NU 紐埃;TK 托克勞;WF 瓦利斯和富圖納;PN 皮特肯群島;NF 諾福克島;CC 科科斯群島;CX 聖誕島;UM 美國本土外小島嶼"],
+["極地與其他","AQ 南極洲;TF 法屬南部領地;BV 布韋島;HM 赫德島;GS 南喬治亞島"]
+];
+
+const C=[];
+D.forEach(([r,s])=>s.split(";").forEach(x=>{const k=x.indexOf(" ");C.push({c:x.slice(0,k),n:x.slice(k+1),r})}));
+const N=C.length;
+
+/* 位元順序 = ISO 3166-1 兩碼字母排序（任何人都能獨立重建） */
+const ORD=C.map(x=>x.c).sort();
+const BIT={};ORD.forEach((c,i)=>BIT[c]=i);
+const sel=new Uint8Array(N);
+
+/* 編碼：i1 + 格式(m 位元遮罩 / l 間隔清單) + 資料，自動選較短者 */
+const P="i1",A="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+function b64(by){let s="",v=0,b=0;for(const x of by){v=(v<<8)|x;b+=8;while(b>=6){b-=6;s+=A[(v>>b)&63]}v&=(1<<b)-1}if(b)s+=A[(v<<(6-b))&63];return s}
+function unb64(s){const o=[];let v=0,b=0;for(const ch of s){const k=A.indexOf(ch);if(k<0)return null;v=(v<<6)|k;b+=6;if(b>=8){b-=8;o.push((v>>b)&255);v&=(1<<b)-1}}return o}
+function enc(){
+  const mk=new Uint8Array(Math.ceil(N/8)),gp=[];let prev=-1;
+  for(let i=0;i<N;i++)if(sel[i]){mk[i>>3]|=1<<(i&7);gp.push(i-prev-1);prev=i}
+  const m=b64(mk),l=b64(gp);
+  return l.length<m.length?P+"l"+l:P+"m"+m;
+}
+function dec(s){
+  s=s.trim();
+  if(s.slice(0,2)!==P)return false;
+  const by=unb64(s.slice(3));
+  if(!by)return false;
+  const t=s[2],n=new Uint8Array(N);
+  if(t==="m"){if(by.length<Math.ceil(N/8))return false;for(let i=0;i<N;i++)n[i]=(by[i>>3]>>(i&7))&1}
+  else if(t==="l"){let i=-1;for(const g of by){i+=g+1;if(i>=N)return false;n[i]=1}}
+  else return false;
+  sel.set(n);return true;
+}
+
+/* 畫面：16 個一組、2 組一頁 */
+const $=id=>document.getElementById(id),body=$("body"),els={},gs=[];
+$("t").textContent=N;
+const G=Math.ceil(N/16);
+for(let g=0;g<G;g++){
+  const lo=g*16,hi=Math.min(N,lo+16);
+  if(g%2===0){const p=document.createElement("div");p.className="pg";p.textContent="第 "+(g/2+1)+" 頁 / "+Math.ceil(G/2);body.appendChild(p)}
+  const h=document.createElement("div");h.className="gh";
+  const l=document.createElement("div");l.textContent=[...new Set(C.slice(lo,hi).map(x=>x.r))].join("、");
+  const cnt=document.createElement("span"),b=document.createElement("button");
+  b.textContent="本組全選";
+  const r=document.createElement("div");r.className="row";r.append(cnt,b);
+  h.append(l,r);body.appendChild(h);
+  const gr=document.createElement("div");gr.className="g";
+  for(let i=lo;i<hi;i++){
+    const e=document.createElement("button");e.className="c";
+    e.innerHTML="<b></b><i></i>";e.firstChild.textContent=C[i].n;e.lastChild.textContent=C[i].c;
+    e.onclick=()=>{sel[BIT[C[i].c]]^=1;upd()};
+    els[C[i].c]=e;gr.appendChild(e);
+  }
+  body.appendChild(gr);
+  gs.push({lo,hi,cnt});
+  b.onclick=()=>{
+    let all=true;
+    for(let i=lo;i<hi;i++)if(!sel[BIT[C[i].c]])all=false;
+    for(let i=lo;i<hi;i++)sel[BIT[C[i].c]]=all?0:1;
+    upd();
+  };
+}
+function upd(skipInput){
+  let n=0;
+  C.forEach(x=>{const v=sel[BIT[x.c]];els[x.c].classList.toggle("on",!!v);n+=v});
+  gs.forEach(g=>{let k=0;for(let i=g.lo;i<g.hi;i++)k+=sel[BIT[C[i].c]];g.cnt.textContent=k+"/"+(g.hi-g.lo)});
+  $("n").textContent=n;
+  const c=enc();
+  if(!skipInput)$("code").value=c;
+  try{history.replaceState(null,"","#"+c)}catch(e){}
+}
+async function copy(v,btn,label){
+  try{await navigator.clipboard.writeText(v)}catch(e){const i=$("code");i.value=v;i.select();try{document.execCommand("copy")}catch(_){}i.value=enc()}
+  btn.textContent="已複製";setTimeout(()=>btn.textContent=label,1200);
+}
+$("all").onclick=()=>{sel.fill(1);upd()};
+$("clr").onclick=()=>{sel.fill(0);upd()};
+$("cp").onclick=()=>copy(enc(),$("cp"),"複製");
+$("lk").onclick=()=>copy(location.href.split("#")[0]+"#"+enc(),$("lk"),"連結");
+$("code").addEventListener("input",e=>{if(dec(e.target.value))upd(true)});
+$("code").addEventListener("focus",e=>e.target.select());
+addEventListener("hashchange",()=>{if(dec(location.hash.slice(1)))upd()});
+if(location.hash)dec(location.hash.slice(1));
+upd();
+</script>
+</body>
+</html>
