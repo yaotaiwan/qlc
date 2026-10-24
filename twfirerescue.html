@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>消防員技能勾選表</title>
+<style>
+:root{
+  --bg:#ffffff;--surface:#f4f3ef;--text:#1f1e1c;--text2:#6b6963;
+  --border:rgba(0,0,0,.15);--border-strong:rgba(0,0,0,.3);
+  --accent-bg:#e6f1fb;--accent-text:#0c447c;--accent-border:#85b7eb;--danger:#a32d2d;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#1f1e1c;--surface:#2b2a27;--text:#f1efe8;--text2:#b4b2a9;
+    --border:rgba(255,255,255,.15);--border-strong:rgba(255,255,255,.3);
+    --accent-bg:#0c447c;--accent-text:#b5d4f4;--accent-border:#378add;--danger:#f09595;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;padding:16px;max-width:420px;margin-inline:auto;background:var(--bg);color:var(--text);font-family:-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;font-size:16px}
+button,input{font:inherit;color:var(--text)}
+button{background:transparent;border:.5px solid var(--border-strong);border-radius:8px;cursor:pointer}
+button:active{transform:scale(.98)}
+input{height:36px;padding:0 10px;background:var(--bg);border:.5px solid var(--border-strong);border-radius:8px}
+.pill{border-radius:999px;padding:8px 14px;font-size:14px;min-height:40px}
+.pill.on,.tab.on{background:var(--accent-bg);color:var(--accent-text);border-color:var(--accent-border)}
+.tab{flex:1;font-size:14px;padding:8px 4px}
+.gb{font-size:13px;padding:4px 10px;min-height:32px}
+.lab{font-size:13px;color:var(--text2);width:36px;flex:none}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+</style>
+</head>
+<body>
+<div style="background:var(--surface);border-radius:12px;padding:12px;margin:0 0 12px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin:0 0 10px;">
+    <span style="font-size:14px;font-weight:500;">已選 <span id="cnt">0</span> / <span id="tot">0</span></span>
+    <button class="gb" id="clr">清除</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;margin:0 0 8px;">
+    <span class="lab">代碼</span>
+    <input id="code" class="mono" type="text" maxlength="4" placeholder="0000" style="width:84px;text-transform:uppercase;" aria-label="代碼">
+    <button class="gb" id="cc">複製</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span class="lab">清單</span>
+    <input id="list" class="mono" type="text" placeholder="EM1,CAR,WTR" style="flex:1;min-width:0;" aria-label="清單">
+    <button class="gb" id="lc">複製</button>
+  </div>
+  <p id="err" style="font-size:13px;color:var(--danger);margin:8px 0 0;"></p>
+</div>
+<div id="tabs" style="display:flex;gap:8px;margin:0 0 12px;"></div>
+<div id="body"></div>
+<div id="desc" style="background:var(--surface);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--text2);min-height:48px;margin:12px 0 0;line-height:1.6;">點選項目查看說明。</div>
+<script>
+const G=[
+{name:'救護',subs:[{n:'救護技術員',d:'救護技術員分初級、中級、高級三級，要依序考取，證書效期三年。',items:[
+['EM1','EMT-1','初級救護技術員。國中以上畢業即可受訓。'],
+['EM2','EMT-2','中級救護技術員。需高中以上畢業，並持有效期內的初級證書。'],
+['EMP','EMT-P','高級救護技術員。需連續四年從事中級救護，或專科以上畢業並持中級證書滿一年。'],
+['AED','CPR／AED','心肺復甦與自動體外電擊器操作。']]}]},
+{name:'駕駛',subs:[
+{n:'駕照',d:'一般駕照類別。哪一種消防車要持哪一級駕照，待確認。',items:[
+['CAR','小型車','普通小型車駕照。'],
+['TRK','大貨車','大貨車駕照。'],
+['BUS','大客車','大客車駕照。'],
+['TRL','聯結車','聯結車駕照。']]},
+{n:'可駕駛車種',d:'依法規的消防車類別分類。',items:[
+['WTR','水箱車','儲水一萬公升以下，加壓送水與射水。'],
+['RSV','水庫車','儲水超過一萬公升，加壓送水與射水。'],
+['PMP','幫浦車','加壓送水與射水。'],
+['CHM','化學車','以泡沫、乾粉等滅火劑處理化學物質火災。'],
+['LDR','雲梯車','執行高空救生與救火，具旋轉臺上的延伸梯或屈折升降臺。']]}]},
+{name:'機具操作',subs:[{n:'機具',d:'暫列項目，名稱與是否有統一證照待確認。',items:[
+['SCB','空氣呼吸器','暫列項目，待確認。'],
+['CUT','破壞切割','暫列項目，待確認。'],
+['ROP','繩索救助','暫列項目，待確認。'],
+['HAZ','化學防護','暫列項目，待確認。']]}]}
+];
+const ALL=[];G.forEach(g=>g.subs.forEach(s=>s.items.forEach(i=>ALL.push(i))));
+const sel=new Set();let tab=0;
+const $=id=>document.getElementById(id);
+$('tot').textContent=ALL.length;
+function enc(){let n=0;ALL.forEach((it,i)=>{if(sel.has(it[0]))n+=Math.pow(2,i)});return n.toString(36).toUpperCase().padStart(4,'0')}
+function applyN(n){sel.clear();ALL.forEach((it,i)=>{if(Math.floor(n/Math.pow(2,i))%2===1)sel.add(it[0])})}
+function setDesc(t,b){$('desc').innerHTML='<span style="color:var(--text);font-weight:500;">'+t+'</span><br>'+b}
+function render(skip){
+  $('cnt').textContent=sel.size;
+  if(skip!=='code')$('code').value=enc();
+  if(skip!=='list')$('list').value=ALL.filter(i=>sel.has(i[0])).map(i=>i[0]).join(',');
+  const tb=$('tabs');tb.innerHTML='';
+  G.forEach((g,gi)=>{
+    const c=g.subs.reduce((a,s)=>a+s.items.filter(i=>sel.has(i[0])).length,0);
+    const b=document.createElement('button');b.className='tab'+(gi===tab?' on':'');
+    b.textContent=g.name+(c?' '+c:'');
+    b.onclick=()=>{tab=gi;render(skip);setDesc(g.name,'點選項目加入清單，群組按鈕可全選。')};
+    tb.appendChild(b);
+  });
+  const body=$('body');body.innerHTML='';
+  G[tab].subs.forEach(s=>{
+    const head=document.createElement('div');
+    head.style.cssText='display:flex;align-items:center;justify-content:space-between;margin:0 0 8px;';
+    const t=document.createElement('span');t.style.cssText='font-size:14px;font-weight:500;';t.textContent=s.n;
+    const all=s.items.every(i=>sel.has(i[0]));
+    const gb=document.createElement('button');gb.className='gb';gb.textContent=all?'取消全選':'全選';
+    gb.onclick=()=>{s.items.forEach(i=>all?sel.delete(i[0]):sel.add(i[0]));$('err').textContent='';render();setDesc(s.n,s.d)};
+    head.appendChild(t);head.appendChild(gb);body.appendChild(head);
+    const wrap=document.createElement('div');wrap.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px;';
+    s.items.forEach(i=>{
+      const p=document.createElement('button');p.className='pill'+(sel.has(i[0])?' on':'');p.textContent=i[1];
+      p.onclick=()=>{sel.has(i[0])?sel.delete(i[0]):sel.add(i[0]);$('err').textContent='';render();setDesc(i[1]+'  '+i[0],i[2])};
+      wrap.appendChild(p);
+    });
+    body.appendChild(wrap);
+  });
+}
+$('list').addEventListener('input',e=>{
+  const toks=e.target.value.toUpperCase().split(/[\s,，、]+/).filter(Boolean);
+  const known=new Set(ALL.map(i=>i[0]));
+  const bad=toks.filter(t=>!known.has(t));
+  sel.clear();toks.forEach(t=>{if(known.has(t))sel.add(t)});
+  $('err').textContent=bad.length?'找不到：'+bad.join('、'):'';
+  render('list');
+});
+$('code').addEventListener('input',e=>{
+  const v=e.target.value.trim();
+  if(!v){sel.clear();$('err').textContent='';render('code');return}
+  const n=/^[0-9A-Za-z]{1,4}$/.test(v)?parseInt(v,36):NaN;
+  if(isNaN(n)||n>=Math.pow(2,ALL.length)){$('err').textContent='代碼無效，請重新輸入';return}
+  applyN(n);$('err').textContent='';render('code');
+});
+$('clr').onclick=()=>{sel.clear();$('err').textContent='';render()};
+function cp(id,btn){
+  const el=$(id);const old=btn.textContent;
+  const done=()=>{btn.textContent='已複製';setTimeout(()=>{btn.textContent=old},1200)};
+  try{navigator.clipboard.writeText(el.value).then(done).catch(()=>{el.select()})}catch(x){el.select()}
+}
+$('cc').onclick=()=>cp('code',$('cc'));
+$('lc').onclick=()=>cp('list',$('lc'));
+render();
+</script>
+</body>
+</html>
