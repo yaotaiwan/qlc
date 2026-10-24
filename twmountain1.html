@@ -1,0 +1,1896 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171a19">
+  <title>台灣大小百岳快選清單</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #171a19;
+      --panel: #202422;
+      --panel-2: #272c29;
+      --line: #3a413c;
+      --text: #e5e9e5;
+      --muted: #9ba49d;
+      --green-bg: #293d32;
+      --green-line: #6b9278;
+      --red-bg: #432d2e;
+      --red-line: #a66b6c;
+      --accent: #a9c8b1;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      padding: 0 0 150px;
+      background: var(--bg);
+      color: var(--text);
+      font-family:
+        -apple-system, BlinkMacSystemFont,
+        "Segoe UI", "Noto Sans TC", sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    button {
+      color: inherit;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    select:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .app {
+      width: min(100%, 1000px);
+      margin: 0 auto;
+      padding: 18px 16px 24px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .brand {
+      min-width: 0;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(20px, 4vw, 27px);
+      font-weight: 650;
+      letter-spacing: 0.02em;
+      line-height: 1.35;
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      padding-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .stat {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .stat strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .main-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      padding: 0 0 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .main-tab {
+      position: relative;
+      padding: 10px 14px;
+      border: 1px solid transparent;
+      border-bottom: 0;
+      border-radius: 10px 10px 0 0;
+      background: transparent;
+      color: var(--muted);
+      font-size: 13px;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .main-tab:hover {
+      color: var(--text);
+      background: var(--panel);
+    }
+
+    .main-tab.active {
+      z-index: 1;
+      margin-bottom: -1px;
+      border-color: var(--line);
+      background: var(--panel);
+      color: var(--text);
+    }
+
+    .workspace {
+      min-height: 360px;
+      padding: 18px 0 24px;
+    }
+
+    .panel {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 0 0 14px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 550;
+    }
+
+    .section-title p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .subtabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-bottom: 15px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      min-height: 34px;
+      padding: 6px 13px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel-2);
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.35;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .pill:hover {
+      border-color: #657169;
+    }
+
+    .pill.active {
+      border-color: var(--green-line);
+      background: var(--green-bg);
+      color: #e2eee5;
+    }
+
+    .pill.subtle {
+      background: transparent;
+      color: var(--muted);
+    }
+
+    .pill.danger {
+      border-color: var(--red-line);
+      background: var(--red-bg);
+    }
+
+    .thin-separator {
+      margin: 14px 0;
+      border: 0;
+      border-top: 1px dashed var(--line);
+    }
+
+    .mountain-grid {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .mountain {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 39px;
+      max-width: 100%;
+      padding: 7px 12px;
+      border: 1px solid #444b46;
+      border-radius: 999px;
+      background: #292e2b;
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.45;
+      text-align: center;
+      overflow-wrap: anywhere;
+    }
+
+    .mountain .elevation {
+      margin-left: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .mountain.selected {
+      border-color: var(--green-line);
+      background: var(--green-bg);
+      color: #e1eee4;
+    }
+
+    .mountain.selected .elevation {
+      color: #b5cbb9;
+    }
+
+    .mountain.excluded {
+      border-color: var(--red-line);
+      background: var(--red-bg);
+      color: #e4c4c4;
+      text-decoration: line-through;
+      text-decoration-color: #d99b9b;
+      text-decoration-thickness: 1.5px;
+    }
+
+    .mountain.excluded .elevation {
+      color: #c89b9b;
+      text-decoration: line-through;
+    }
+
+    .command-area {
+      display: grid;
+      gap: 10px;
+    }
+
+    .command-area textarea {
+      width: 100%;
+      min-height: 150px;
+      padding: 12px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #141716;
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    .command-area textarea::placeholder {
+      color: #727c75;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .empty-state {
+      padding: 32px 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .bottom-info {
+      position: fixed;
+      z-index: 20;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      padding: 12px max(16px, calc((100% - 968px) / 2));
+      border-top: 1px solid var(--line);
+      background: rgba(26, 30, 28, 0.97);
+      backdrop-filter: blur(12px);
+    }
+
+    .bottom-info-title {
+      margin-bottom: 3px;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 550;
+    }
+
+    .bottom-info-text {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .footer {
+      padding: 18px 0 8px;
+      color: #7f8982;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 600px) {
+      .app {
+        padding: 14px 12px 20px;
+      }
+
+      .topbar {
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+
+      .stats {
+        justify-content: flex-start;
+        padding-top: 0;
+        white-space: normal;
+      }
+
+      .main-tabs {
+        gap: 3px;
+      }
+
+      .main-tab {
+        padding: 9px 10px;
+        font-size: 12px;
+      }
+
+      .workspace {
+        padding-top: 14px;
+      }
+
+      .panel {
+        padding: 12px;
+      }
+
+      .mountain-grid {
+        gap: 7px;
+      }
+
+      .mountain {
+        padding: 7px 10px;
+      }
+
+      .bottom-info {
+        padding: 10px 12px;
+      }
+
+      body {
+        padding-bottom: 135px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <h1>台灣大小百岳快選清單</h1>
+        <div class="subtitle">Taiwan 200 Peaks · Quick List</div>
+      </div>
+
+      <div class="stats" id="stats">
+        <span class="stat">百岳 <strong id="big-stat">🏠 0/100</strong></span>
+        <span class="stat">小百岳 <strong id="small-stat">🏠 0/100</strong></span>
+      </div>
+    </header>
+
+    <nav class="main-tabs" id="main-tabs" aria-label="主選單">
+      <button class="main-tab active" data-tab="text">文字清單</button>
+      <button class="main-tab" data-tab="big">百岳</button>
+      <button class="main-tab" data-tab="small">小百岳</button>
+      <button class="main-tab" data-tab="features">特色快選</button>
+    </nav>
+
+    <main class="workspace" id="workspace">
+      <!-- 後續段落會在這裡加入各分頁內容與互動功能 -->
+      <section class="panel" id="initial-panel">
+        <div class="section-title">
+          <div>
+            <h2>台灣大小百岳快選清單</h2>
+            <p>初版測試中，後續將加入完整名單與互動功能。</p>
+          </div>
+        </div>
+        <div class="empty-state">
+          準備載入山岳資料……
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      初版測試版 · 山岳資料與分類仍待核對
+    </footer>
+  </div>
+
+  <aside class="bottom-info" id="bottom-info" aria-live="polite">
+    <div class="bottom-info-title" id="info-title">使用說明</div>
+    <div class="bottom-info-text" id="info-text">
+      選擇分頁以瀏覽山岳；後續版本將加入選取、排除、文字指令與 QLC 代碼功能。
+    </div>
+  </aside>
+
+<script>
+/*
+ * 台灣大小百岳快選清單
+ * 第 2 段：資料結構與分類
+ *
+ * 狀態定義：
+ * 0 = 中立
+ * 1 = 已選取
+ * 2 = 已排除
+ *
+ * 注意：此段資料為初版示範資料，
+ * 正式發布前仍需核對完整名單與海拔。
+ */
+
+const BIG_RAW = `
+玉山主峰|3952|玉山山塊
+玉山東峰|3869|玉山山塊
+玉山北峰|3858|玉山山塊
+玉山南峰|3844|玉山山塊
+玉山西峰|3467|玉山山塊
+玉山前峰|3239|玉山山塊
+東小南山|3711|玉山山塊
+鹿山|2981|玉山山塊
+南玉山|3383|玉山山塊
+郡大山|3265|玉山山塊
+馬博拉斯山|3785|中央山脈南段
+秀姑巒山|3825|中央山脈南段
+關山|3668|中央山脈南段
+大水窟山|3630|中央山脈南段
+南雙頭山|3356|中央山脈南段
+轆轆山|3279|中央山脈南段
+塔芬山|3090|中央山脈南段
+達芬尖山|3208|中央山脈南段
+雲峰|3564|中央山脈南段
+三叉山|3496|中央山脈南段
+向陽山|3603|中央山脈南段
+關山嶺山|3176|中央山脈南段
+庫哈諾辛山|3115|中央山脈南段
+塔關山|3222|中央山脈南段
+卑南主山|3295|中央山脈南段
+小關山|3249|中央山脈南段
+石山|2813|中央山脈南段
+溪頭山|3272|中央山脈南段
+北大武山|3092|中央山脈南段
+南大武山|2841|中央山脈南段
+大武山|3092|中央山脈南段
+雪山|3886|雪山山脈
+雪山北峰|3703|雪山山脈
+雪山南峰|3505|雪山山脈
+雪山東峰|3201|雪山山脈
+北稜角|3880|雪山山脈
+大雪山|3530|雪山山脈
+頭鷹山|3510|雪山山脈
+火石山|3310|雪山山脈
+中雪山|3173|雪山山脈
+小雪山|2997|雪山山脈
+志佳陽大山|3289|雪山山脈
+大劍山|3594|雪山山脈
+佳陽山|3314|雪山山脈
+劍山|3253|雪山山脈
+品田山|3524|雪山山脈
+池有山|3303|雪山山脈
+桃山|3325|雪山山脈
+喀拉業山|3133|雪山山脈
+大霸尖山|3492|雪山山脈
+小霸尖山|3418|雪山山脈
+伊澤山|3297|雪山山脈
+加利山|3112|雪山山脈
+馬洋山|2930|雪山山脈
+南湖大山|3742|中央山脈北段
+南湖東峰|3632|中央山脈北段
+南湖大山東南峰|3462|中央山脈北段
+巴巴山|3449|中央山脈北段
+馬比杉山|3211|中央山脈北段
+審馬陣山|3141|中央山脈北段
+南湖北山|3536|中央山脈北段
+中央尖山|3705|中央山脈北段
+無明山|3451|中央山脈北段
+鈴鳴山|3272|中央山脈北段
+甘藷峰|3158|中央山脈北段
+畢祿山|3371|中央山脈北段
+羊頭山|3035|中央山脈北段
+白姑大山|3341|中央山脈北段
+屏風山|3250|中央山脈北段
+合歡山主峰|3417|雪山山脈
+合歡山東峰|3421|雪山山脈
+合歡山北峰|3422|雪山山脈
+合歡山西峰|3145|雪山山脈
+石門山|3237|雪山山脈
+奇萊主山|3560|中央山脈北段
+奇萊北峰|3607|中央山脈北段
+奇萊南峰|3358|中央山脈北段
+南華山|3183|中央山脈北段
+能高山|3262|中央山脈北段
+能高南峰|3349|中央山脈北段
+安東軍山|3068|中央山脈北段
+白石山|3110|中央山脈北段
+光頭山|3060|中央山脈北段
+大禹嶺山|3160|中央山脈北段
+三角點山|3100|中央山脈北段
+大霸南稜山|3200|雪山山脈
+南插天山|1907|雪山山脈
+北插天山|1727|雪山山脈
+巴博庫魯山|2101|雪山山脈
+拉拉山|2031|雪山山脈
+馬拉邦山|1406|雪山山脈
+加里山|2220|雪山山脈
+鹿場大山|2618|雪山山脈
+大安溪大甲溪分水嶺|2200|雪山山脈
+鳶嘴山|2180|雪山山脈
+稍來山|2307|雪山山脈
+屋我尾山|1796|雪山山脈
+白毛山|1522|雪山山脈
+東卯山|1690|雪山山脈
+八仙山|2366|雪山山脈
+大雪山北峰|3437|雪山山脈
+`;
+
+const SMALL_RAW = `
+基隆山|588|北部
+大武崙山|231|北部
+五分山|757|北部
+姜子寮山|729|北部
+孝子山|360|北部
+土庫岳|389|北部
+天上山|429|北部
+石門山|551|北部
+大棟山|405|北部
+獅頭山|492|北部
+觀音山|616|北部
+向天山|949|北部
+面天山|977|北部
+大屯山|1092|北部
+七星山|1120|北部
+小觀音山|1070|北部
+金面山|667|北部
+劍潭山|153|北部
+五指山|699|北部
+五寮尖|639|北部
+加里山|2220|西部
+馬那邦山|1406|西部
+東眼山|1212|西部
+李棟山|1914|西部
+飛鳳山|462|西部
+獅頭山|492|西部
+十八尖山|132|西部
+向天湖山|1225|西部
+油羅山|1764|西部
+鵝公髻山|1579|西部
+霞喀羅大山|2234|西部
+雪山坑山|1926|西部
+鳶嘴山|2180|西部
+稍來山|2307|西部
+白毛山|1522|西部
+東卯山|1690|西部
+八仙山|2366|西部
+頭嵙山|859|西部
+大橫屏山|1206|西部
+聚興山|500|西部
+南觀音山|318|西部
+大肚萬里長城|300|西部
+九九峰|779|西部
+松柏嶺山|430|西部
+橫山|443|西部
+獅山|491|西部
+大尖山|1305|南部
+關子嶺大凍山|1241|南部
+烏山|730|南部
+棚集山|899|南部
+笠頂山|659|南部
+尾寮山|1427|南部
+鳴海山|1411|南部
+旗尾山|318|南部
+美輪山|1474|南部
+刣牛湖山|798|南部
+月世界步道山|200|南部
+雞籠山|288|南部
+大凍山|1241|南部
+西阿里關山|973|南部
+獨立山|840|南部
+大塔山|2663|南部
+二尖山|1270|南部
+雲嘉大尖山|1305|南部
+石壁山|1751|南部
+萬年山|1010|南部
+白雲山|1044|南部
+茶頂山|728|南部
+棚集山北峰|800|南部
+知本主山|1103|東部
+都蘭山|1190|東部
+三仙台山|230|東部
+太麻里山|1340|東部
+加奈美山|1424|東部
+利嘉山|1505|東部
+里壠山|1682|東部
+巴塱衛山|325|東部
+鯉魚山|601|東部
+月眉山|614|東部
+八里灣山|924|東部
+六十石山|964|東部
+赤柯山|899|東部
+麻荖漏山|1682|東部
+大坑山|455|東部
+初音山|905|東部
+花蓮山|414|東部
+富源山|1067|東部
+安通越山|1185|東部
+玉里山|1536|東部
+`;
+
+const BIG_GROUPS = [
+  "雪山山脈",
+  "玉山山塊",
+  "中央山脈北段",
+  "中央山脈南段"
+];
+
+const SMALL_REGIONS = [
+  "北部",
+  "西部",
+  "南部",
+  "東部"
+];
+
+/*
+ * 特色分類採用獨立索引。
+ * 同一座山可同時出現在多個特色分類，
+ * 不會因此建立第二筆山岳紀錄。
+ */
+const FEATURE_GROUPS = {
+  "五嶽": [
+    "玉山主峰",
+    "雪山",
+    "秀姑巒山",
+    "南湖大山",
+    "北大武山"
+  ],
+  "三尖": [
+    "中央尖山",
+    "大霸尖山",
+    "達芬尖山"
+  ],
+  "一奇": [
+    "奇萊北峰"
+  ],
+  "四秀": [
+    "品田山",
+    "池有山",
+    "桃山",
+    "喀拉業山"
+  ],
+  "十峻": [
+    "玉山東峰",
+    "玉山南峰",
+    "馬博拉斯山",
+    "無明山",
+    "能高南峰",
+    "奇萊北峰",
+    "大劍山",
+    "品田山",
+    "關山",
+    "畢祿山"
+  ],
+  "八秀": [
+    "玉山東峰",
+    "玉山北峰",
+    "玉山南峰",
+    "秀姑巒山",
+    "南湖大山",
+    "中央尖山",
+    "雪山",
+    "大霸尖山"
+  ],
+  "十崇": [
+    "玉山主峰",
+    "玉山北峰",
+    "玉山南峰",
+    "雪山",
+    "南湖大山",
+    "秀姑巒山",
+    "馬博拉斯山",
+    "關山",
+    "奇萊北峰",
+    "大霸尖山"
+  ]
+};
+
+/*
+ * 將文字資料轉成物件。
+ * id 暫以名稱作為索引；如果出現同名異山，
+ * 後續版本應改用唯一編號。
+ */
+function parseMountainData(raw, type) {
+  return raw
+    .trim()
+    .split("\n")
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map(line => {
+      const [name, elevation, group] = line.split("|");
+      return {
+        id: `${type}:${name}`,
+        name,
+        elevation: Number(elevation),
+        group,
+        type
+      };
+    });
+}
+
+const BIG = parseMountainData(BIG_RAW, "big");
+const SMALL = parseMountainData(SMALL_RAW, "small");
+
+const ALL_MOUNTAINS = [...BIG, ...SMALL];
+
+/*
+ * 共用狀態：
+ * 0 = 中立、1 = 選取、2 = 排除。
+ * 所有分頁未來都讀取同一個狀態表。
+ */
+const mountainState = Object.create(null);
+
+ALL_MOUNTAINS.forEach(mountain => {
+  mountainState[mountain.id] = 0;
+});
+
+/* 以名稱查找山岳；同名時保留多筆結果供後續處理。 */
+function findMountainsByName(name) {
+  return ALL_MOUNTAINS.filter(
+    mountain => mountain.name === name
+  );
+}
+
+/* 依地理分組取得百岳。 */
+function getBigByGroup(group) {
+  return BIG.filter(mountain => mountain.group === group);
+}
+
+/* 依區域取得小百岳。 */
+function getSmallByRegion(region) {
+  return SMALL.filter(mountain => mountain.group === region);
+}
+
+/* 依特色分類取得山岳，避免重複建立紀錄。 */
+function getFeatureMountains(featureName) {
+  const names = FEATURE_GROUPS[featureName] || [];
+  return names.flatMap(name => findMountainsByName(name));
+}
+
+/* 統計已選取與已排除的數量。 */
+function countMountainStates(list) {
+  return list.reduce((result, mountain) => {
+    const state = mountainState[mountain.id] ?? 0;
+
+    if (state === 1) result.selected++;
+    if (state === 2) result.excluded++;
+
+    return result;
+  }, {
+    total: list.length,
+    selected: 0,
+    excluded: 0
+  });
+}
+
+console.info("百岳資料筆數：", BIG.length);
+console.info("小百岳資料筆數：", SMALL.length);
+console.info("全部資料筆數：", ALL_MOUNTAINS.length);
+</script>
+
+<script>
+/* ===== 第 3 段：分頁與山岳互動 ===== */
+
+let activeTab = "text";
+let activeBigGroup = BIG_GROUPS[0];
+let activeSmallRegion = SMALL_REGIONS[0];
+let activeFeature = Object.keys(FEATURE_GROUPS)[0];
+let selectedMountainId = null;
+
+/* 成就圖示 */
+function getAchievement(count) {
+  if (count === 0) return "🏠";
+  if (count < 10) return "🥾";
+  if (count < 50) return "🥉";
+  if (count < 100) return "🥈";
+  return "🥇";
+}
+
+/* 更新右上角統計 */
+function updateStats() {
+  const bigCount = countMountainStates(BIG);
+  const smallCount = countMountainStates(SMALL);
+
+  const bigStat = document.getElementById("big-stat");
+  const smallStat = document.getElementById("small-stat");
+
+  if (bigStat) {
+    bigStat.textContent =
+      `${getAchievement(bigCount.selected)} ${bigCount.selected}/100`;
+  }
+
+  if (smallStat) {
+    smallStat.textContent =
+      `${getAchievement(smallCount.selected)} ${smallCount.selected}/100`;
+  }
+}
+
+/* 更新底部資訊面板 */
+function updateInfo(title, description) {
+  const titleElement = document.getElementById("info-title");
+  const textElement = document.getElementById("info-text");
+
+  if (titleElement) titleElement.textContent = title;
+  if (textElement) textElement.textContent = description;
+}
+
+/* 取得山岳狀態的文字 */
+function getStateLabel(state) {
+  if (state === 1) return "已選取";
+  if (state === 2) return "已排除";
+  return "未設定";
+}
+
+/* 切換山岳狀態：中立 → 選取 → 排除 → 中立 */
+function cycleMountainState(mountainId) {
+  const current = mountainState[mountainId] ?? 0;
+  mountainState[mountainId] = (current + 1) % 3;
+
+  renderCurrentTab();
+
+  const mountain = ALL_MOUNTAINS.find(
+    item => item.id === mountainId
+  );
+
+  if (mountain) {
+    updateInfo(
+      mountain.name,
+      `${mountain.elevation.toLocaleString()} 公尺｜${getStateLabel(mountainState[mountainId])}`
+    );
+  }
+}
+
+/* 設定一組山岳的狀態 */
+function setMountainGroupState(mountains, state) {
+  mountains.forEach(mountain => {
+    mountainState[mountain.id] = state;
+  });
+
+  renderCurrentTab();
+  updateStats();
+
+  const action = state === 1
+    ? "已全選"
+    : state === 0
+      ? "已清除"
+      : "已排除";
+
+  updateInfo(
+    "群組操作",
+    `${action} ${mountains.length} 座山岳。`
+  );
+}
+
+/* 建立通用按鈕 */
+function createPill(label, onClick, options = {}) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "pill";
+
+  if (options.active) button.classList.add("active");
+  if (options.subtle) button.classList.add("subtle");
+  if (options.danger) button.classList.add("danger");
+
+  button.textContent = label;
+  button.addEventListener("click", onClick);
+
+  return button;
+}
+
+/* 建立區域分頁 */
+function renderSubtabs(container, items, current, onSelect) {
+  const subtabs = document.createElement("div");
+  subtabs.className = "subtabs";
+
+  items.forEach(item => {
+    subtabs.appendChild(
+      createPill(item, () => onSelect(item), {
+        active: item === current
+      })
+    );
+  });
+
+  container.appendChild(subtabs);
+}
+
+/* 建立群組標題與全選／清除按鈕 */
+function renderGroupHeading(container, title, mountains) {
+  const heading = document.createElement("div");
+  heading.className = "section-title";
+
+  const titleBox = document.createElement("div");
+  const h2 = document.createElement("h2");
+  h2.textContent = title;
+
+  const note = document.createElement("p");
+  note.textContent = `共 ${mountains.length} 座`;
+
+  titleBox.append(h2, note);
+
+  const actions = document.createElement("div");
+  actions.className = "button-row";
+
+  actions.append(
+    createPill("全選", () => setMountainGroupState(mountains, 1)),
+    createPill("清除", () => setMountainGroupState(mountains, 0), {
+      subtle: true
+    })
+  );
+
+  heading.append(titleBox, actions);
+  container.appendChild(heading);
+}
+
+/* 建立單座山岳按鈕 */
+function createMountainButton(mountain) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "mountain";
+
+  const state = mountainState[mountain.id] ?? 0;
+
+  if (state === 1) button.classList.add("selected");
+  if (state === 2) button.classList.add("excluded");
+
+  button.setAttribute(
+    "aria-pressed",
+    state === 1 ? "true" : "false"
+  );
+
+  button.setAttribute(
+    "aria-label",
+    `${mountain.name}，海拔 ${mountain.elevation} 公尺，目前${getStateLabel(state)}`
+  );
+
+  const name = document.createElement("span");
+  name.textContent = mountain.name;
+
+  const elevation = document.createElement("span");
+  elevation.className = "elevation";
+  elevation.textContent = `(${mountain.elevation.toLocaleString()})`;
+
+  button.append(name, elevation);
+
+  button.addEventListener("click", () => {
+    selectedMountainId = mountain.id;
+    cycleMountainState(mountain.id);
+  });
+
+  return button;
+}
+
+/* 建立山岳按鈕清單 */
+function renderMountainGrid(container, mountains) {
+  const grid = document.createElement("div");
+  grid.className = "mountain-grid";
+
+  if (mountains.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "這個分類目前沒有對應的山岳資料。";
+    grid.appendChild(empty);
+  } else {
+    mountains.forEach(mountain => {
+      grid.appendChild(createMountainButton(mountain));
+    });
+  }
+
+  container.appendChild(grid);
+}
+
+/* 建立標題 */
+function createSectionTitle(title, description = "") {
+  const wrapper = document.createElement("div");
+  wrapper.className = "section-title";
+
+  const titleBox = document.createElement("div");
+  const h2 = document.createElement("h2");
+  h2.textContent = title;
+  titleBox.appendChild(h2);
+
+  if (description) {
+    const p = document.createElement("p");
+    p.textContent = description;
+    titleBox.appendChild(p);
+  }
+
+  wrapper.appendChild(titleBox);
+  return wrapper;
+}
+
+/* 文字清單分頁的基本介面 */
+function renderTextTab(container) {
+  container.appendChild(
+    createSectionTitle(
+      "文字清單",
+      "使用逗號分隔山名；後續段落會加入指令解析功能。"
+    )
+  );
+
+  const area = document.createElement("div");
+  area.className = "command-area";
+
+  const textarea = document.createElement("textarea");
+  textarea.id = "mountain-command";
+  textarea.placeholder =
+    "例如：雪山, 玉山主峰, -中央尖山\n@雪山山脈";
+
+  textarea.setAttribute("aria-label", "山岳文字指令");
+
+  area.appendChild(textarea);
+
+  const hint = document.createElement("div");
+  hint.className = "hint";
+  hint.textContent =
+    "山名、排除指令與分類指令將於後續段落實作。";
+  area.appendChild(hint);
+
+  const actions = document.createElement("div");
+  actions.className = "button-row";
+
+  actions.append(
+    createPill("套用指令", () => {
+      if (typeof applyTextCommands === "function") {
+        applyTextCommands(textarea.value);
+      } else {
+        updateInfo(
+          "文字指令",
+          "指令解析功能尚未載入，請完成後續程式碼。"
+        );
+      }
+    }),
+    createPill("清空文字", () => {
+      textarea.value = "";
+      textarea.focus();
+    }, { subtle: true })
+  );
+
+  area.appendChild(actions);
+  container.appendChild(area);
+}
+
+/* 百岳分頁 */
+function renderBigTab(container) {
+  renderSubtabs(
+    container,
+    BIG_GROUPS,
+    activeBigGroup,
+    group => {
+      activeBigGroup = group;
+      renderCurrentTab();
+      updateInfo(group, "選擇山岳可切換選取、排除與中立狀態。");
+    }
+  );
+
+  container.appendChild(
+    Object.assign(document.createElement("hr"), {
+      className: "thin-separator"
+    })
+  );
+
+  const mountains = getBigByGroup(activeBigGroup);
+
+  renderGroupHeading(container, activeBigGroup, mountains);
+  renderMountainGrid(container, mountains);
+}
+
+/* 小百岳分頁 */
+function renderSmallTab(container) {
+  renderSubtabs(
+    container,
+    SMALL_REGIONS,
+    activeSmallRegion,
+    region => {
+      activeSmallRegion = region;
+      renderCurrentTab();
+      updateInfo(region, "小百岳區域資訊；名單仍待正式核對。");
+    }
+  );
+
+  container.appendChild(
+    Object.assign(document.createElement("hr"), {
+      className: "thin-separator"
+    })
+  );
+
+  const mountains = getSmallByRegion(activeSmallRegion);
+
+  renderGroupHeading(container, activeSmallRegion, mountains);
+  renderMountainGrid(container, mountains);
+}
+
+/* 特色快選分頁 */
+function renderFeaturesTab(container) {
+  const features = Object.keys(FEATURE_GROUPS);
+
+  renderSubtabs(
+    container,
+    features,
+    activeFeature,
+    feature => {
+      activeFeature = feature;
+      renderCurrentTab();
+      updateInfo(
+        feature,
+        `特色分類：${(FEATURE_GROUPS[feature] || []).length} 個名單項目。`
+      );
+    }
+  );
+
+  container.appendChild(
+    Object.assign(document.createElement("hr"), {
+      className: "thin-separator"
+    })
+  );
+
+  const mountains = getFeatureMountains(activeFeature);
+
+  renderGroupHeading(container, activeFeature, mountains);
+  renderMountainGrid(container, mountains);
+}
+
+/* 主分頁切換 */
+function renderCurrentTab() {
+  const workspace = document.getElementById("workspace");
+  if (!workspace) return;
+
+  workspace.replaceChildren();
+
+  document.querySelectorAll(".main-tab").forEach(button => {
+    const isActive = button.dataset.tab === activeTab;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-selected", String(isActive));
+  });
+
+  const panel = document.createElement("section");
+  panel.className = "panel";
+
+  if (activeTab === "text") {
+    renderTextTab(panel);
+  } else if (activeTab === "big") {
+    renderBigTab(panel);
+  } else if (activeTab === "small") {
+    renderSmallTab(panel);
+  } else if (activeTab === "features") {
+    renderFeaturesTab(panel);
+  }
+
+  workspace.appendChild(panel);
+  updateStats();
+}
+
+/* 綁定主分頁事件 */
+document.querySelectorAll(".main-tab").forEach(button => {
+  button.addEventListener("click", () => {
+    activeTab = button.dataset.tab;
+    renderCurrentTab();
+
+    const descriptions = {
+      text: ["文字清單", "輸入山名或分類指令。"],
+      big: ["百岳", "選擇山群，再點擊山岳設定狀態。"],
+      small: ["小百岳", "選擇區域，再點擊山岳設定狀態。"],
+      features: ["特色快選", "依特色分類快速瀏覽山岳。"]
+    };
+
+    const [title, description] = descriptions[activeTab];
+    updateInfo(title, description);
+  });
+});
+
+/* 初始畫面 */
+renderCurrentTab();
+updateInfo(
+  "使用說明",
+  "點擊山岳按鈕可依序切換：中立 → 已選取 → 已排除 → 中立。"
+);
+</script>
+
+<script>
+/* ===== 第 4 段：文字指令與 QLC 編碼 ===== */
+
+/*
+ * 文字指令規則：
+ * 雪山       → 選取雪山
+ * -雪山      → 排除雪山
+ * @雪山山脈  → 選取整個山群
+ * -@北部     → 排除整個小百岳區域
+ * !雪山      → 清除雪山狀態
+ *
+ * 指令以逗號、頓號、分號或換行分隔。
+ * 由左至右執行，後面的指令覆蓋前面的狀態。
+ */
+
+function normalizeCommandToken(token) {
+  return token
+    .trim()
+    .replace(/\s+/g, "")
+    .replace(/，/g, ",");
+}
+
+function findCommandTargets(name) {
+  const normalized = normalizeCommandToken(name);
+
+  if (!normalized) return [];
+
+  /* @分類名稱：選取整個分類 */
+  if (normalized.startsWith("@")) {
+    const groupName = normalized.slice(1);
+
+    if (BIG_GROUPS.includes(groupName)) {
+      return getBigByGroup(groupName);
+    }
+
+    if (SMALL_REGIONS.includes(groupName)) {
+      return getSmallByRegion(groupName);
+    }
+
+    if (FEATURE_GROUPS[groupName]) {
+      return getFeatureMountains(groupName);
+    }
+
+    return [];
+  }
+
+  return findMountainsByName(normalized);
+}
+
+function applyTextCommands(input) {
+  const tokens = input
+    .split(/[,\uFF0C\u3001;\uFF1B\n\r]+/)
+    .map(normalizeCommandToken)
+    .filter(Boolean);
+
+  const results = {
+    applied: 0,
+    unknown: [],
+    messages: []
+  };
+
+  tokens.forEach(token => {
+    let state = 1;
+    let expression = token;
+
+    if (expression.startsWith("-")) {
+      state = 2;
+      expression = expression.slice(1);
+    } else if (expression.startsWith("!")) {
+      state = 0;
+      expression = expression.slice(1);
+    }
+
+    const targets = findCommandTargets(expression);
+
+    if (targets.length === 0) {
+      results.unknown.push(token);
+      return;
+    }
+
+    targets.forEach(mountain => {
+      mountainState[mountain.id] = state;
+      results.applied++;
+    });
+
+    results.messages.push(
+      `${expression}：${state === 1 ? "選取" : state === 2 ? "排除" : "清除"}`
+    );
+  });
+
+  renderCurrentTab();
+
+  updateInfo(
+    "文字指令結果",
+    `已套用 ${results.applied} 筆山岳狀態。` +
+    (results.unknown.length
+      ? ` 無法辨識：${results.unknown.join("、")}`
+      : "")
+  );
+
+  if (results.unknown.length) {
+    console.warn("未辨識的文字指令：", results.unknown);
+  }
+
+  return results;
+}
+
+/*
+ * QLC 格式：
+ * QLC1-<Base58編碼>
+ *
+ * 每座山使用 2 bits：
+ * 00 = 中立
+ * 01 = 選取
+ * 10 = 排除
+ * 11 = 保留值
+ *
+ * 排序固定為 ALL_MOUNTAINS 的資料順序。
+ * 解碼時必須使用相同版本的山岳資料順序。
+ */
+
+const QLC_PREFIX = "QLC1-";
+
+/* Bitcoin Base58 字元表，不包含 0、O、I、l */
+const BASE58_ALPHABET =
+  "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
+/* 將位元組陣列編碼成 Base58 */
+function base58Encode(bytes) {
+  if (!bytes.length) return "";
+
+  let zeroes = 0;
+
+  while (zeroes < bytes.length && bytes[zeroes] === 0) {
+    zeroes++;
+  }
+
+  const digits = [];
+  const copy = Array.from(bytes);
+
+  let startAt = zeroes;
+
+  while (startAt < copy.length) {
+    let remainder = 0;
+
+    for (let i = startAt; i < copy.length; i++) {
+      const value = remainder * 256 + copy[i];
+      copy[i] = Math.floor(value / 58);
+      remainder = value % 58;
+    }
+
+    digits.push(BASE58_ALPHABET[remainder]);
+
+    while (startAt < copy.length && copy[startAt] === 0) {
+      startAt++;
+    }
+  }
+
+  return "1".repeat(zeroes) + digits.reverse().join("");
+}
+
+/* 將 Base58 還原成位元組陣列 */
+function base58Decode(text) {
+  if (typeof text !== "string" || !text.length) {
+    return new Uint8Array(0);
+  }
+
+  let zeroes = 0;
+
+  while (zeroes < text.length && text[zeroes] === "1") {
+    zeroes++;
+  }
+
+  const bytes = [];
+
+  for (let i = zeroes; i < text.length; i++) {
+    const character = text[i];
+    const digit = BASE58_ALPHABET.indexOf(character);
+
+    if (digit < 0) {
+      throw new Error(`QLC 代碼包含無效字元：${character}`);
+    }
+
+    let carry = digit;
+
+    for (let j = 0; j < bytes.length; j++) {
+      carry += bytes[j] * 58;
+      bytes[j] = carry & 0xff;
+      carry >>= 8;
+    }
+
+    while (carry > 0) {
+      bytes.push(carry & 0xff);
+      carry >>= 8;
+    }
+  }
+
+  const output = new Uint8Array(zeroes + bytes.length);
+
+  for (let i = 0; i < bytes.length; i++) {
+    output[output.length - 1 - i] = bytes[i];
+  }
+
+  return output;
+}
+
+/* 把目前全部山岳狀態打包成位元組 */
+function getQLCBytes() {
+  const bytes = new Uint8Array(
+    Math.ceil(ALL_MOUNTAINS.length / 4)
+  );
+
+  ALL_MOUNTAINS.forEach((mountain, index) => {
+    const state = mountainState[mountain.id] ?? 0;
+    const byteIndex = Math.floor(index / 4);
+    const bitOffset = (index % 4) * 2;
+
+    bytes[byteIndex] |= (state & 0b11) << bitOffset;
+  });
+
+  return bytes;
+}
+
+/* 產生 QLC 代碼 */
+function encodeQLC() {
+  const bytes = getQLCBytes();
+  return QLC_PREFIX + base58Encode(bytes);
+}
+
+/* 讀取 QLC 代碼並還原狀態 */
+function decodeQLC(code) {
+  if (typeof code !== "string") {
+    throw new Error("請輸入 QLC 代碼。");
+  }
+
+  const normalized = code.trim().replace(/\s+/g, "");
+
+  if (!normalized.startsWith(QLC_PREFIX)) {
+    throw new Error(`代碼格式錯誤，必須以 ${QLC_PREFIX} 開頭。`);
+  }
+
+  const payload = normalized.slice(QLC_PREFIX.length);
+  const bytes = base58Decode(payload);
+
+  const expectedLength = Math.ceil(
+    ALL_MOUNTAINS.length / 4
+  );
+
+  if (bytes.length !== expectedLength) {
+    throw new Error(
+      `資料長度不符：目前版本需要 ${expectedLength} bytes，收到 ${bytes.length} bytes。`
+    );
+  }
+
+  /* 先完整驗證，再修改狀態，避免失敗時只還原一半 */
+  const decodedStates = [];
+
+  ALL_MOUNTAINS.forEach((mountain, index) => {
+    const byteIndex = Math.floor(index / 4);
+    const bitOffset = (index % 4) * 2;
+    const state = (bytes[byteIndex] >> bitOffset) & 0b11;
+
+    if (state === 3) {
+      throw new Error(
+        `代碼包含無效狀態，位置：${index + 1}。`
+      );
+    }
+
+    decodedStates.push(state);
+  });
+
+  decodedStates.forEach((state, index) => {
+    mountainState[ALL_MOUNTAINS[index].id] = state;
+  });
+
+  renderCurrentTab();
+
+  updateInfo(
+    "QLC 已還原",
+    `已還原 ${ALL_MOUNTAINS.length} 筆山岳資料的狀態。`
+  );
+
+  return true;
+}
+
+/* 提供簡單的 QLC 文字摘要 */
+function getQLCSummary() {
+  const big = countMountainStates(BIG);
+  const small = countMountainStates(SMALL);
+
+  return {
+    code: encodeQLC(),
+    bigSelected: big.selected,
+    bigExcluded: big.excluded,
+    smallSelected: small.selected,
+    smallExcluded: small.excluded
+  };
+}
+
+/* 開發測試：編碼與解碼應能保留所有狀態 */
+function testQLCRoundTrip() {
+  const original = ALL_MOUNTAINS.map(
+    mountain => mountainState[mountain.id] ?? 0
+  );
+
+  const code = encodeQLC();
+
+  original.forEach((state, index) => {
+    mountainState[ALL_MOUNTAINS[index].id] = 0;
+  });
+
+  decodeQLC(code);
+
+  const restored = ALL_MOUNTAINS.map(
+    mountain => mountainState[mountain.id] ?? 0
+  );
+
+  const passed = original.every(
+    (state, index) => state === restored[index]
+  );
+
+  console.info("QLC 往返測試：", passed ? "通過" : "失敗");
+
+  return passed;
+}
+</script>
+
+
+<script>
+/* ===== 第 5 段：QLC 介面、複製與資料工具 ===== */
+
+/* 建立可重複使用的文字輸入框 */
+function createTextArea(id, placeholder, label) {
+  const textarea = document.createElement("textarea");
+  textarea.id = id;
+  textarea.placeholder = placeholder;
+  textarea.setAttribute("aria-label", label);
+  textarea.autocomplete = "off";
+  textarea.spellcheck = false;
+  return textarea;
+}
+
+/* 顯示提示訊息 */
+function showNotice(message, isError = false) {
+  updateInfo(
+    isError ? "操作未完成" : "操作完成",
+    message
+  );
+}
+
+/* 複製文字：優先使用 Clipboard API，失敗時提供選取提示 */
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      showNotice("內容已複製，可以貼到其他地方。");
+      return true;
+    }
+
+    const temporary = document.createElement("textarea");
+    temporary.value = text;
+    temporary.style.position = "fixed";
+    temporary.style.opacity = "0";
+    document.body.appendChild(temporary);
+    temporary.select();
+
+    const copied = document.execCommand("copy");
+    temporary.remove();
+
+    if (copied) {
+      showNotice("內容已複製，可以貼到其他地方。");
+      return true;
+    }
+
+    showNotice("請點選文字框，手動選取並複製內容。");
+    return false;
+  } catch (error) {
+    console.error("複製失敗：", error);
+    showNotice("瀏覽器未允許自動複製，請手動複製文字框內容。", true);
+    return false;
+  }
+}
+
+/* 建立 QLC 操作區 */
+function renderQLCTools(container) {
+  const section = document.createElement("section");
+  section.className = "panel";
+  section.style.marginTop = "16px";
+
+  section.appendChild(
+    createSectionTitle(
+      "QLC 清單代碼",
+      "把目前的選取狀態轉成短代碼，方便保存或分享。"
+    )
+  );
+
+  const area = document.createElement("div");
+  area.className = "command-area";
+
+  const output = createTextArea(
+    "qlc-output",
+    "按下「產生 QLC」後，代碼會顯示在這裡。",
+    "QLC 輸出代碼"
+  );
+  output.readOnly = true;
+  output.style.minHeight = "90px";
+
+  const outputActions = document.createElement("div");
+  outputActions.className = "button-row";
+
+  outputActions.append(
+    createPill("產生 QLC", () => {
+      output.value = encodeQLC();
+      showNotice("已產生目前清單的 QLC 代碼。");
+    }),
+    createPill("複製代碼", () => {
+      if (!output.value.trim()) {
+        output.value = encodeQLC();
+      }
+      copyText(output.value);
+    }, { subtle: true })
+  );
+
+  area.append(output, outputActions);
+
+  const separator = document.createElement("hr");
+  separator.className = "thin-separator";
+  area.appendChild(separator);
+
+  const input = createTextArea(
+    "qlc-input",
+    "將先前保存的 QLC 代碼貼在這裡，例如：QLC1-...",
+    "QLC 輸入代碼"
+  );
+  input.style.minHeight = "90px";
+
+  const inputActions = document.createElement("div");
+  inputActions.className = "button-row";
+
+  inputActions.append(
+    createPill("還原清單", () => {
+      try {
+        decodeQLC(input.value);
+        output.value = encodeQLC();
+        showNotice("清單狀態已還原。");
+      } catch (error) {
+        showNotice(error.message || "無法還原代碼。", true);
+      }
+    }),
+    createPill("清空輸入", () => {
+      input.value = "";
+      input.focus();
+    }, { subtle: true })
+  );
+
+  area.append(input, inputActions);
+
+  const hint = document.createElement("p");
+  hint.className = "hint";
+  hint.textContent =
+    "注意：目前 QLC 與這個測試版的山岳資料順序綁定；資料更新後，舊代碼不一定能對應新版本。";
+  area.appendChild(hint);
+
+  section.appendChild(area);
+  container.appendChild(section);
+}
+
+/* 清空全部山岳狀態 */
+function clearAllMountainStates() {
+  ALL_MOUNTAINS.forEach(mountain => {
+    mountainState[mountain.id] = 0;
+  });
+
+  renderCurrentTab();
+
+  showNotice(
+    `已清空全部狀態，共 ${ALL_MOUNTAINS.length} 筆山岳資料。`
+  );
+}
+
+/* 排除全部山岳 */
+function excludeAllMountainStates() {
+  ALL_MOUNTAINS.forEach(mountain => {
+    mountainState[mountain.id] = 2;
+  });
+
+  renderCurrentTab();
+
+  showNotice(
+    `已排除全部山岳，共 ${ALL_MOUNTAINS.length} 筆山岳資料。`
+  );
+}
+
+/* 建立整體狀態統計 */
+function renderDataSummary(container) {
+  const section = document.createElement("section");
+  section.className = "panel";
+  section.style.marginTop = "16px";
+
+  section.appendChild(
+    createSectionTitle(
+      "目前清單統計",
+      "統計依目前載入的資料計算。"
+    )
+  );
+
+  const big = countMountainStates(BIG);
+  const small = countMountainStates(SMALL);
+
+  const summary = document.createElement("div");
+  summary.className = "command-area";
+
+  const lines = [
+    `百岳資料筆數：${BIG.length}`,
+    `小百岳資料筆數：${SMALL.length}`,
+    `全部資料筆數：${ALL_MOUNTAINS.length}`,
+    `百岳已選取：${big.selected}，已排除：${big.excluded}`,
+    `小百岳已選取：${small.selected}，已排除：${small.excluded}`
+  ];
+
+  lines.forEach(line => {
+    const p = document.createElement("div");
+    p.textContent = line;
+    summary.appendChild(p);
+  });
+
+  const hint = document.createElement("p");
+  hint.className = "hint";
+  hint.textContent =
+    "本版名單仍為測試資料，筆數與正式 100＋100 名單可能不同。";
+  summary.appendChild(hint);
+
+  const actions = document.createElement("div");
+  actions.className = "button-row";
+
+  actions.append(
+    createPill("清空全部狀態", () => {
+      if (confirm("確定清空所有山岳的選取與排除狀態？")) {
+        clearAllMountainStates();
+      }
+    }, { subtle: true }),
+    createPill("全部排除", () => {
+      if (confirm("確定將所有山岳設為排除？")) {
+        excludeAllMountainStates();
+      }
+    }, { danger: true }),
+    createPill("重新整理統計", () => {
+      renderCurrentTab();
+      showNotice("統計已更新。");
+    }, { subtle: true })
+  );
+
+  summary.appendChild(actions);
+  section.appendChild(summary);
+  container.appendChild(section);
+}
+
+/*
+ * 重新整理文字指令與 QLC 工具區。
+ * 本函式供第六段的初始化流程呼叫。
+ */
+function renderUtilityPanels() {
+  const workspace = document.getElementById("workspace");
+  if (!workspace) return;
+
+  renderQLCTools(workspace);
+  renderDataSummary(workspace);
+}
+
+/* 讓各段整合後可透過全域函式重新載入介面 */
+window.PeaksApp = {
+  encodeQLC,
+  decodeQLC,
+  applyTextCommands,
+  clearAllMountainStates,
+  excludeAllMountainStates,
+  getQLCSummary,
+  testQLCRoundTrip,
+  renderCurrentTab,
+  renderUtilityPanels,
+  getDataCounts: () => ({
+    big: BIG.length,
+    small: SMALL.length,
+    total: ALL_MOUNTAINS.length
+  })
+};
+</script>
+
+<script>
+/* 第六段：整合、初始化與收尾 */
+(function () {
+  // 保留原本的頁面渲染功能
+  const originalRenderCurrentTab = renderCurrentTab;
+
+  // 每次切換頁面或更新狀態後，都重新顯示工具面板
+  renderCurrentTab = function () {
+    originalRenderCurrentTab();
+
+    if (typeof renderUtilityPanels === "function") {
+      renderUtilityPanels();
+    }
+  };
+
+  // 更新頁尾，標示目前版本的資料狀態
+  const footer = document.querySelector(".footer");
+
+  if (footer) {
+    footer.textContent =
+      "山岳清單互動 Demo｜測試版本，山岳資料仍待逐筆查核";
+  }
+
+  // 執行初始渲染，移除原本的示範佔位內容
+  renderCurrentTab();
+
+  // 開發者工具中的基本檢查
+  console.info("山岳清單互動 Demo 已初始化。");
+
+  if (typeof testQLCRoundTrip === "function") {
+    const qlcTestPassed = testQLCRoundTrip();
+    console.info(
+      "QLC 編碼往返測試：",
+      qlcTestPassed ? "通過" : "未通過"
+    );
+  }
+})();
+</script>
+</body>
+</html>
