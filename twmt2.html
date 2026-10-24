@@ -5,29 +5,33 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>台灣百岳快選清單</title>
 <style>
-:root{--bg:#f6f5f2;--card:#fff;--ink:#222;--sub:#777;--line:#d9d7d0;--acc:#2f6f4f;--accbg:#e1f0e7}
-@media(prefers-color-scheme:dark){:root{--bg:#161614;--card:#222220;--ink:#eee;--sub:#9a9a94;--line:#3a3a36;--acc:#7fd1a4;--accbg:#1e3a2b}}
+:root{--bg:#f4f3ee;--card:#fffefb;--ink:#141413;--sub:#6b6a63;--line:#e0ddd0;--acc:#c15f3c;--accbg:#f3ddd2;--accink:#8f3d1f}
+@media(prefers-color-scheme:dark){:root{--bg:#262624;--card:#30302e;--ink:#faf9f5;--sub:#b1ada1;--line:#454542;--acc:#d97757;--accbg:#4a3328;--accink:#f0b49b}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,"PingFang TC","Noto Sans TC",sans-serif}
 .top{position:sticky;top:0;z-index:5;background:var(--bg);padding:12px 14px 8px}
 .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-h1{margin:0;font-size:18px}
+h1{margin:0;font:600 19px/1.3 Georgia,"Noto Serif TC","Songti TC",serif}
 #cnt{font-size:16px;font-weight:600;white-space:nowrap}
 .tabs{display:flex;gap:4px}
 .tabs button{flex:1;padding:9px 0;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;font-size:14px}
-.tabs button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.tabs button.on{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
 main{padding:2px 14px 24px}
 .panel{display:none}.panel.on{display:block}
-h2{margin:14px 0 6px;font-size:13px;font-weight:500;color:var(--sub)}
+.sh{display:flex;align-items:center;gap:8px;margin:14px 0 6px}
+.sh h2{margin:0;font-size:13px;font-weight:600;color:var(--sub)}
+.sh .c{font-size:12px;color:var(--sub);flex:1}
+.sh .all{padding:3px 10px;border:1px solid var(--line);background:transparent;color:var(--accink);border-radius:8px;font-size:12px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px}
 .grid button{padding:9px 2px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;font-size:13px;line-height:1.3}
-.grid button.s{background:var(--accbg);border-color:var(--acc);color:var(--acc);font-weight:600}
+.grid button.s{background:var(--accbg);border-color:var(--acc);color:var(--accink);font-weight:600}
 label{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--sub);margin:10px 0 4px}
-label button{padding:4px 12px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;font-size:12px}
+label button{padding:4px 12px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;font-size:12px;margin-left:4px}
 textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:14px/1.7 inherit;resize:vertical}
-#tx{min-height:190px}
+#tx{min-height:170px}
 #cd{font:14px/1.7 ui-monospace,Menlo,monospace;word-break:break-all;min-height:70px}
-.msg{min-height:18px;font-size:12px;color:#b3422e;margin-top:3px}
+.hint{font-size:12px;color:var(--sub);margin-top:4px}
+.msg{min-height:18px;font-size:12px;color:var(--acc);margin-top:3px}
 </style>
 </head>
 <body>
@@ -58,30 +62,41 @@ const D={
  ['南一段','關山,小關山,海諾南山,卑南主山,關山嶺山,塔關山,庫哈諾辛山'],
  ['南端','北大武山,布拉克桑山']]};
 const ALIAS={玉山主峰:'玉山',雪山主峰:'雪山',合歡山主峰:'合歡山',合歡山北峰:'北合歡山',合歡北峰:'北合歡山',合歡東峰:'合歡山東峰',南湖東峰:'南湖大山東峰',南湖南峰:'南湖大山南峰',奇萊主峰:'奇萊主山',北大武:'北大武山',甘藷峰:'甘薯峰'};
-const ALL=[];
-Object.values(D).forEach(secs=>secs.forEach(s=>s[1].split(',').forEach(n=>ALL.push(n))));
+
+/* 資料：ALL 山名、SEC 區塊 */
+const ALL=[],SEC=[];
+Object.keys(D).forEach(tab=>D[tab].forEach(([title,list])=>{
+  const ids=list.split(',').map(n=>{ALL.push(n);return ALL.length-1});
+  SEC.push({tab,title,ids});
+}));
 const N=ALL.length;
 const idx=new Map(ALL.map((n,i)=>[n,i]));
 const st=new Uint8Array(N);
 const $=s=>document.querySelector(s);
 const tabsEl=$('#tabs'),main=$('#main');
 const btns=[];
+let expand=false;
 
 /* 頁面 */
 const names=['清單',...Object.keys(D)];
 const panels={};
 const lp=document.createElement('section');lp.className='panel';
-lp.innerHTML='<label><span>文字清單（可直接輸入、貼上）</span><button id="ct">複製</button></label><textarea id="tx" spellcheck="false"></textarea><div class="msg" id="mt"></div><label><span>代碼（base64）</span><button id="cc">複製</button></label><textarea id="cd" spellcheck="false"></textarea><div class="msg" id="mc"></div>';
+lp.innerHTML='<label><span>文字清單</span><span><button id="all">全選百岳</button><button id="ex">展開</button><button id="ct">複製</button></span></label><textarea id="tx" spellcheck="false"></textarea><div class="hint">語法：@區塊名 選整區；-山名 排除；@頁籤名 選整個頁籤。例：@雪山山脈,-雪山</div><div class="msg" id="mt"></div><label><span>代碼（base64）</span><button id="cc">複製</button></label><textarea id="cd" spellcheck="false"></textarea><div class="msg" id="mc"></div>';
 panels['清單']=lp;
 Object.keys(D).forEach(k=>{
   const p=document.createElement('section');p.className='panel';
-  D[k].forEach(([title,list])=>{
-    const h=document.createElement('h2');h.textContent=title;p.appendChild(h);
+  SEC.filter(s=>s.tab===k).forEach(s=>{
+    const h=document.createElement('div');h.className='sh';
+    h.innerHTML='<h2></h2><span class="c"></span><button type="button" class="all">全選</button>';
+    h.querySelector('h2').textContent=s.title;
+    s.cnt=h.querySelector('.c');s.all=h.querySelector('.all');
+    s.all.onclick=()=>{const full=s.ids.every(i=>st[i]);s.ids.forEach(i=>st[i]=full?0:1);sync()};
+    p.appendChild(h);
     const g=document.createElement('div');g.className='grid';
-    list.split(',').forEach(n=>{
-      const b=document.createElement('button');b.type='button';b.textContent=n;
-      b.onclick=()=>{st[idx.get(n)]^=1;sync()};
-      btns[idx.get(n)]=b;g.appendChild(b);
+    s.ids.forEach(i=>{
+      const b=document.createElement('button');b.type='button';b.textContent=ALL[i];
+      b.onclick=()=>{st[i]^=1;sync()};
+      btns[i]=b;g.appendChild(b);
     });
     p.appendChild(g);
   });
@@ -119,6 +134,48 @@ function dec(str){
   }catch(x){return {e:'代碼格式錯誤'}}
 }
 
+/* 文字輸出：精簡（@區塊、-排除）或展開（全部山名） */
+function expandedText(){return ALL.filter((n,i)=>st[i]).join(',')}
+function compactText(){
+  if(st.every(v=>v))return '@全部';
+  const out=[],minus=[];
+  Object.keys(D).forEach(tab=>{
+    const secs=SEC.filter(s=>s.tab===tab);
+    if(secs.every(s=>s.ids.every(i=>st[i]))){out.push('@'+tab);return}
+    secs.forEach(s=>{
+      const sel=s.ids.filter(i=>st[i]),miss=s.ids.filter(i=>!st[i]);
+      if(!sel.length)return;
+      if(!miss.length){out.push('@'+s.title);return}
+      if(miss.length+1<sel.length){out.push('@'+s.title);miss.forEach(i=>minus.push('-'+ALL[i]))}
+      else sel.forEach(i=>out.push(ALL[i]));
+    });
+  });
+  return out.concat(minus).join(',');
+}
+
+/* 文字解析：加入先處理，排除（-）最後處理 */
+function grab(name){
+  if(name==='全部')return ALL.map((n,i)=>i);
+  const s=SEC.filter(x=>x.title===name);
+  if(s.length)return s.flatMap(x=>x.ids);
+  if(D[name])return SEC.filter(x=>x.tab===name).flatMap(x=>x.ids);
+  return null;
+}
+function parse(txt){
+  const add=new Set(),rm=new Set(),bad=[];
+  txt.split(/[,，、;；\s]+/).filter(Boolean).forEach(orig=>{
+    let t=orig,neg=false;
+    if(/^[-－−]/.test(t)){neg=true;t=t.slice(1)}
+    let ids=null;
+    if(/^[@＠]/.test(t))ids=grab(t.slice(1));
+    else{const n=ALIAS[t]||t;if(idx.has(n))ids=[idx.get(n)]}
+    if(!ids)bad.push(orig);else ids.forEach(i=>(neg?rm:add).add(i));
+  });
+  const o=new Uint8Array(N);
+  add.forEach(i=>o[i]=1);rm.forEach(i=>o[i]=0);
+  return {o,bad};
+}
+
 /* 進度徽章 */
 function badge(n){return n>=100?'🥇':n>=50?'🥈':n>=10?'🥉':n>=1?'🥾':'🏠'}
 
@@ -126,18 +183,23 @@ const tx=$('#tx'),cd=$('#cd'),mt=$('#mt'),mc=$('#mc');
 function sync(skip){
   let c=0;
   for(let i=0;i<N;i++){btns[i].classList.toggle('s',!!st[i]);c+=st[i]}
+  SEC.forEach(s=>{
+    const k=s.ids.filter(i=>st[i]).length;
+    s.cnt.textContent=k+'/'+s.ids.length;
+    s.all.textContent=k===s.ids.length?'取消全選':'全選';
+  });
   $('#cnt').textContent=badge(c)+' '+c+'/'+N;
-  if(skip!=='tx')tx.value=ALL.filter((n,i)=>st[i]).join(',');
+  $('#all').textContent=c===N?'取消全選':'全選百岳';
+  if(skip!=='tx')tx.value=expand?expandedText():compactText();
   if(skip!=='cd')cd.value=enc();
 }
 
 /* 文字 → 狀態 */
 let t1,t2;
 function applyText(final){
-  const p=tx.value.split(/[,，、\s]+/).filter(Boolean).map(n=>ALIAS[n]||n);
-  const bad=p.filter(n=>!idx.has(n));
-  st.fill(0);p.forEach(n=>{if(idx.has(n))st[idx.get(n)]=1});
-  mt.textContent=bad.length?'找不到這些山名（已略過）：'+bad.join('、'):'';
+  const {o,bad}=parse(tx.value);
+  st.set(o);
+  mt.textContent=bad.length?'無法辨識（已略過）：'+bad.join('、'):'';
   sync(final&&!bad.length?undefined:'tx');
 }
 tx.addEventListener('input',()=>{clearTimeout(t1);t1=setTimeout(()=>applyText(false),600)});
@@ -154,7 +216,9 @@ function applyCode(final){
 cd.addEventListener('input',()=>{clearTimeout(t2);t2=setTimeout(()=>applyCode(false),600)});
 cd.addEventListener('blur',()=>{clearTimeout(t2);applyCode(true)});
 
-/* 複製 */
+/* 全選百岳、展開／精簡、複製 */
+$('#all').onclick=()=>{const full=st.every(v=>v);st.fill(full?0:1);sync()};
+$('#ex').onclick=e=>{expand=!expand;e.target.textContent=expand?'精簡':'展開';sync()};
 function copy(el,btn){
   const t=el.value;
   (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).catch(()=>{el.select();document.execCommand('copy')});
