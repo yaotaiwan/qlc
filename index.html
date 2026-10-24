@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QLC 足跡快速編碼器 - Quick List Code Country Tracker</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        .mono-code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-brand-500 selection:text-slate-950">
+
+    <!-- Sticky Top Header Bar -->
+    <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 shadow-xl transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+            <!-- Upper row: Info & Primary Controls -->
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-brand-500/10 border border-brand-500/20 rounded-xl text-brand-500">
+                            <i data-lucide="globe-2" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-base font-bold text-white flex items-center gap-2">
+                                QLC 國家足跡卡
+                                <span class="text-xs font-normal px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-400 border border-brand-500/20">Quick List Code</span>
+                            </h1>
+                            <p class="text-xs text-slate-400">去中心化可攜式狀態碼 · 無需資料庫</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visited Counter & Progress Bar -->
+                <div class="flex items-center gap-4 bg-slate-950/60 px-4 py-2 rounded-xl border border-slate-800/80">
+                    <div class="flex flex-col min-w-[140px]">
+                        <div class="flex justify-between items-baseline text-xs mb-1">
+                            <span class="text-slate-400">已解鎖足跡</span>
+                            <span class="font-bold text-brand-400" id="stats-count">0 / 0</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                            <div id="stats-progress-bar" class="bg-gradient-to-r from-brand-600 to-brand-400 h-full w-0 transition-all duration-300"></div>
+                        </div>
+                    </div>
+                    <span id="stats-percent" class="text-lg font-extrabold text-white min-w-[55px] text-right">0.0%</span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <button id="btn-copy" onclick="copyQLC()" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-brand-600 hover:bg-brand-500 text-white font-medium text-xs sm:text-sm rounded-lg shadow-lg shadow-brand-600/20 active:scale-95 transition-all">
+                        <i data-lucide="copy" class="w-4 h-4"></i>
+                        <span>複製 QLC 碼</span>
+                    </button>
+                    <button onclick="openImportModal()" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-xs sm:text-sm rounded-lg active:scale-95 transition-all">
+                        <i data-lucide="arrow-down-left" class="w-4 h-4"></i>
+                        <span>匯入/載入</span>
+                    </button>
+                    <div class="flex items-center gap-1 border-l border-slate-800 pl-2 ml-1">
+                        <button onclick="toggleSelectAll(true)" title="全選所有國家" class="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors">
+                            <i data-lucide="check-square" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="toggleSelectAll(false)" title="全部清除" class="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-colors">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QLC Live Hex Output Bar -->
+            <div class="relative flex items-center bg-slate-950 border border-slate-800 rounded-lg p-2 gap-2">
+                <span class="text-[10px] font-semibold tracking-wider uppercase text-slate-500 px-1 select-none flex items-center gap-1">
+                    <i data-lucide="binary" class="w-3.5 h-3.5 text-brand-500"></i> QLC
+                </span>
+                <div id="qlc-code-display" class="mono-code text-xs text-brand-400 font-bold overflow-x-auto whitespace-nowrap scrollbar-none py-0.5 tracking-wider flex-1 select-all">
+                    0000000000000000000000000000000000000000000000000000000000000000
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- Controls & Filter Toolbar -->
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+            <!-- Search Field -->
+            <div class="relative w-full md:w-80">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="搜尋國家、地區名稱..." class="w-full bg-slate-900 border border-slate-800 text-slate-200 text-sm rounded-xl pl-9 pr-8 py-2.5 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all">
+                <button id="search-clear-btn" onclick="clearSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Fast Quick-jump Continental Tabs -->
+            <div class="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-none">
+                <button onclick="scrollToContinent('asia')" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs text-slate-300 rounded-lg whitespace-nowrap transition-colors flex items-center gap-1.5">
+                    <span>亞洲</span>
+                    <span id="badge-asia" class="bg-slate-800 text-slate-400 text-[10px] px-1.5 py-0.2 rounded-full">0/0</span>
+                </button>
+                <button onclick="scrollToContinent('europe')" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs text-slate-300 rounded-lg whitespace-nowrap transition-colors flex items-center gap-1.5">
+                    <span>歐洲</span>
+                    <span id="badge-europe" class="bg-slate-800 text-slate-400 text-[10px] px-1.5 py-0.2 rounded-full">0/0</span>
+                </button>
+                <button onclick="scrollToContinent('africa')" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs text-slate-300 rounded-lg whitespace-nowrap transition-colors flex items-center gap-1.5">
+                    <span>非洲</span>
+                    <span id="badge-africa" class="bg-slate-800 text-slate-400 text-[10px] px-1.5 py-0.2 rounded-full">0/0</span>
+                </button>
+                <button onclick="scrollToContinent('north-america')" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs text-slate-300 rounded-lg whitespace-nowrap transition-colors flex items-center gap-1.5">
+                    <span>北美洲</span>
+                    <span id="badge-north-america" class="bg-slate-800 text-slate-400 text-[10px] px-1.5 py-0.2 rounded-full">0/0</span>
+                </button>
+                <button onclick="scrollToContinent('south-america')" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs text-slate-300 rounded-lg whitespace-nowrap transition-colors flex items-center gap-1.5">
+                    <span>南美洲</span>
+                    <span id="badge-south-america" class="bg-slate-800 text-slate-400 text-[10px] px-1.5 py-0.2 rounded-full">0/0</span>
+                </button>
+                <button onclick="scrollToContinent('oceania')" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs text-slate-300 rounded-lg whitespace-nowrap transition-colors flex items-center gap-1.5">
+                    <span>大洋洲</span>
+                    <span id="badge-oceania" class="bg-slate-800 text-slate-400 text-[10px] px-1.5 py-0.2 rounded-full">0/0</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Hierarchical Continents Container -->
+        <div id="continents-container" class="space-y-8">
+            <!-- Dynamic Rendered Content Goes Here -->
+        </div>
+    </main>
+
+    <!-- Modal: Import / Load QLC String -->
+    <div id="import-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative transform scale-95 transition-transform duration-200" id="import-modal-panel">
+            <button onclick="closeImportModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-200 p-1">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="p-2.5 bg-brand-500/10 border border-brand-500/20 text-brand-400 rounded-xl">
+                    <i data-lucide="file-input" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-white">匯入 QLC 狀態碼</h3>
+                    <p class="text-xs text-slate-400">貼上先前保存或他人分享的 64 位數 Hex 碼</p>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">QLC 碼 (Hex Code)</label>
+                    <textarea id="import-input" rows="3" placeholder="例如: 800000000000000000000000..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 mono-code text-xs text-brand-300 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all uppercase"></textarea>
+                    <p id="import-error" class="text-xs text-red-400 mt-1 hidden"></p>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <button onclick="closeImportModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-lg transition-colors">
+                        取消
+                    </button>
+                    <button onclick="processImport()" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white text-xs font-medium rounded-lg shadow-lg shadow-brand-600/20 transition-all flex items-center gap-1.5">
+                        <i data-lucide="check" class="w-4 h-4"></i>
+                        <span>確認解析並套用</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Overlay -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <script>
+        /**
+         * Comprehensive World Database
+         * Total items: 198 (Index 0..197)
+         */
+        const DATA = [
+            {
+                id: "asia",
+                name: "亞洲",
+                englishName: "Asia",
+                subregions: [
+                    {
+                        id: "east-asia",
+                        name: "東亞與東北亞",
+                        countries: [
+                            { id: 0, name: "臺灣 (中華民國)", code: "TW" },
+                            { id: 1, name: "日本", code: "JP" },
+                            { id: 2, name: "韓國", code: "KR" },
+                            { id: 3, name: "朝鮮 (北韓)", code: "KP" },
+                            { id: 4, name: "中國", code: "CN" },
+                            { id: 5, name: "蒙古", code: "MN" }
+                        ]
+                    },
+                    {
+                        id: "southeast-asia",
+                        name: "東南亞",
+                        countries: [
+                            { id: 6, name: "越南", code: "VN" },
+                            { id: 7, name: "老撾 (寮國)", code: "LA" },
+                            { id: 8, name: "柬埔寨", code: "KH" },
+                            { id: 9, name: "泰國", code: "TH" },
+                            { id: 10, name: "緬甸", code: "MM" },
+                            { id: 11, name: "馬來西亞", code: "MY" },
+                            { id: 12, name: "新加坡", code: "SG" },
+                            { id: 13, name: "印度尼西亞 (印尼)", code: "ID" },
+                            { id: 14, name: "菲律賓", code: "PH" },
+                            { id: 15, name: "汶萊", code: "BN" },
+                            { id: 16, name: "東帝汶", code: "TL" }
+                        ]
+                    },
+                    {
+                        id: "south-asia",
+                        name: "南亞",
+                        countries: [
+                            { id: 17, name: "印度", code: "IN" },
+                            { id: 18, name: "巴基斯坦", code: "PK" },
+                            { id: 19, name: "孟加拉", code: "BD" },
+                            { id: 20, name: "斯里蘭卡", code: "LK" },
+                            { id: 21, name: "尼泊爾", code: "NP" },
+                            { id: 22, name: "不丹", code: "BT" },
+                            { id: 23, name: "馬爾地夫", code: "MV" }
+                        ]
+                    },
+                    {
+                        id: "central-asia",
+                        name: "中亞",
+                        countries: [
+                            { id: 24, name: "哈薩克", code: "KZ" },
+                            { id: 25, name: "烏茲別克", code: "UZ" },
+                            { id: 26, name: "吉爾吉斯", code: "KG" },
+                            { id: 27, name: "塔吉克", code: "TJ" },
+                            { id: 28, name: "土庫曼", code: "TM" }
+                        ]
+                    },
+                    {
+                        id: "west-asia",
+                        name: "西亞 / 中東",
+                        countries: [
+                            { id: 29, name: "阿富汗", code: "AF" },
+                            { id: 30, name: "伊朗", code: "IR" },
+                            { id: 31, name: "伊拉克", code: "IQ" },
+                            { id: 32, name: "敘利亞", code: "SY" },
+                            { id: 33, name: "黎巴嫩", code: "LB" },
+                            { id: 34, name: "約旦", code: "JO" },
+                            { id: 35, name: "以色列", code: "IL" },
+                            { id: 36, name: "巴勒斯坦", code: "PS" },
+                            { id: 37, name: "沙烏地阿拉伯", code: "SA" },
+                            { id: 38, name: "葉門", code: "YE" },
+                            { id: 39, name: "阿曼", code: "OM" },
+                            { id: 40, name: "阿拉伯聯合大公國", code: "AE" },
+                            { id: 41, name: "卡達", code: "QA" },
+                            { id: 42, name: "巴林", code: "BH" },
+                            { id: 43, name: "科威特", code: "KW" },
+                            { id: 44, name: "土耳其", code: "TR" },
+                            { id: 45, name: "賽普勒斯", code: "CY" },
+                            { id: 46, name: "亞美尼亞", code: "AM" },
+                            { id: 47, name: "喬治亞", code: "GE" },
+                            { id: 48, name: "亞塞拜然", code: "AZ" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "europe",
+                name: "歐洲",
+                englishName: "Europe",
+                subregions: [
+                    {
+                        id: "west-north-europe",
+                        name: "西歐與北歐",
+                        countries: [
+                            { id: 49, name: "英國", code: "GB" },
+                            { id: 50, name: "愛爾蘭", code: "IE" },
+                            { id: 51, name: "法國", code: "FR" },
+                            { id: 52, name: "比利時", code: "BE" },
+                            { id: 53, name: "荷蘭", code: "NL" },
+                            { id: 54, name: "盧森堡", code: "LU" },
+                            { id: 55, name: "丹麥", code: "DK" },
+                            { id: 56, name: "瑞典", code: "SE" },
+                            { id: 57, name: "挪威", code: "NO" },
+                            { id: 58, name: "芬蘭", code: "FI" },
+                            { id: 59, name: "冰島", code: "IS" }
+                        ]
+                    },
+                    {
+                        id: "central-south-europe",
+                        name: "中歐與南歐",
+                        countries: [
+                            { id: 60, name: "德國", code: "DE" },
+                            { id: 61, name: "瑞士", code: "CH" },
+                            { id: 62, name: "奧地利", code: "AT" },
+                            { id: 63, name: "列支敦斯登", code: "LI" },
+                            { id: 64, name: "波蘭", code: "PL" },
+                            { id: 65, name: "捷克", code: "CZ" },
+                            { id: 66, name: "斯洛伐克", code: "SK" },
+                            { id: 67, name: "匈牙利", code: "HU" },
+                            { id: 68, name: "西班牙", code: "ES" },
+                            { id: 69, name: "葡萄牙", code: "PT" },
+                            { id: 70, name: "安道爾", code: "AD" },
+                            { id: 71, name: "義大利", code: "IT" },
+                            { id: 72, name: "梵蒂岡 (教廷)", code: "VA" },
+                            { id: 73, name: "聖馬力諾", code: "SM" },
+                            { id: 74, name: "馬爾他", code: "MT" },
+                            { id: 75, name: "希臘", code: "GR" }
+                        ]
+                    },
+                    {
+                        id: "east-balkan-europe",
+                        name: "東歐與巴爾幹半島",
+                        countries: [
+                            { id: 76, name: "俄羅斯", code: "RU" },
+                            { id: 77, name: "白俄羅斯", code: "BY" },
+                            { id: 78, name: "烏克蘭", code: "UA" },
+                            { id: 79, name: "摩爾多瓦", code: "MD" },
+                            { id: 80, name: "羅馬尼亞", code: "RO" },
+                            { id: 81, name: "保加利亞", code: "BG" },
+                            { id: 82, name: "塞爾維亞", code: "RS" },
+                            { id: 83, name: "克羅埃西亞", code: "HR" },
+                            { id: 84, name: "斯洛維尼亞", code: "SI" },
+                            { id: 85, name: "波士尼亞與赫塞哥維納", code: "BA" },
+                            { id: 86, name: "蒙特內哥羅 (黑山)", code: "ME" },
+                            { id: 87, name: "北馬其頓", code: "MK" },
+                            { id: 88, name: "阿爾巴尼亞", code: "AL" },
+                            { id: 89, name: "科索沃", code: "XK" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "africa",
+                name: "非洲",
+                englishName: "Africa",
+                subregions: [
+                    {
+                        id: "north-africa",
+                        name: "北非",
+                        countries: [
+                            { id: 90, name: "埃及", code: "EG" },
+                            { id: 91, name: "利比亞", code: "LY" },
+                            { id: 92, name: "突尼西亞", code: "TN" },
+                            { id: 93, name: "阿爾及利亞", code: "DZ" },
+                            { id: 94, name: "摩洛哥", code: "MA" },
+                            { id: 95, name: "蘇丹", code: "SD" }
+                        ]
+                    },
+                    {
+                        id: "east-africa",
+                        name: "東非",
+                        countries: [
+                            { id: 96, name: "衣索比亞", code: "ET" },
+                            { id: 97, name: "肯亞", code: "KE" },
+                            { id: 98, name: "坦尚尼亞", code: "TZ" },
+                            { id: 99, name: "烏干達", code: "UG" },
+                            { id: 100, name: "盧安達", code: "RW" },
+                            { id: 101, name: "蒲隆地", code: "BI" },
+                            { id: 102, name: "南蘇丹", code: "SS" },
+                            { id: 103, name: "索馬利亞", code: "SO" },
+                            { id: 104, name: "吉布地", code: "DJ" },
+                            { id: 105, name: "厄利垂亞", code: "ER" },
+                            { id: 106, name: "塞席爾", code: "SC" },
+                            { id: 107, name: "模里西斯", code: "MU" },
+                            { id: 108, name: "葛摩", code: "KM" },
+                            { id: 109, name: "馬達加斯加", code: "MG" }
+                        ]
+                    },
+                    {
+                        id: "central-africa",
+                        name: "中非",
+                        countries: [
+                            { id: 110, name: "剛果民主共和國", code: "CD" },
+                            { id: 111, name: "剛果共和國", code: "CG" },
+                            { id: 112, name: "喀麥隆", code: "CM" },
+                            { id: 113, name: "加彭", code: "GA" },
+                            { id: 114, name: "中非共和國", code: "CF" },
+                            { id: 115, name: "查德", code: "TD" },
+                            { id: 116, name: "赤道幾內亞", code: "GQ" },
+                            { id: 117, name: "聖多美普林西比", code: "ST" }
+                        ]
+                    },
+                    {
+                        id: "west-africa",
+                        name: "西非",
+                        countries: [
+                            { id: 118, name: "奈及利亞", code: "NG" },
+                            { id: 119, name: "迦納", code: "GH" },
+                            { id: 120, name: "塞內加爾", code: "SN" },
+                            { id: 121, name: "象牙海岸", code: "CI" },
+                            { id: 122, name: "幾內亞", code: "GN" },
+                            { id: 123, name: "幾內亞比索", code: "GW" },
+                            { id: 124, name: "獅子山", code: "SL" },
+                            { id: 125, name: "賴比瑞亞", code: "LR" },
+                            { id: 126, name: "馬利", code: "ML" },
+                            { id: 127, name: "布吉納法索", code: "BF" },
+                            { id: 128, name: "尼日", code: "NE" },
+                            { id: 129, name: "多哥", code: "TG" },
+                            { id: 130, name: "貝南", code: "BJ" },
+                            { id: 131, name: "甘比亞", code: "GM" },
+                            { id: 132, name: "維德角", code: "CV" },
+                            { id: 133, name: "茅利塔尼亞", code: "MR" }
+                        ]
+                    },
+                    {
+                        id: "southern-africa",
+                        name: "南非地區",
+                        countries: [
+                            { id: 134, name: "南非", code: "ZA" },
+                            { id: 135, name: "史瓦帝尼", code: "SZ" },
+                            { id: 136, name: "賴索托", code: "LS" },
+                            { id: 137, name: "那米比亞", code: "NA" },
+                            { id: 138, name: "波札那", code: "BW" },
+                            { id: 139, name: "辛巴威", code: "ZW" },
+                            { id: 140, name: "尚比亞", code: "ZM" },
+                            { id: 141, name: "馬拉威", code: "MW" },
+                            { id: 142, name: "莫三比克", code: "MZ" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "north-america",
+                name: "北美洲",
+                englishName: "North America",
+                subregions: [
+                    {
+                        id: "mainland-na",
+                        name: "北美大陸",
+                        countries: [
+                            { id: 143, name: "美國", code: "US" },
+                            { id: 144, name: "加拿大", code: "CA" },
+                            { id: 145, name: "墨西哥", code: "MX" }
+                        ]
+                    },
+                    {
+                        id: "central-america",
+                        name: "中美洲",
+                        countries: [
+                            { id: 146, name: "瓜地馬拉", code: "GT" },
+                            { id: 147, name: "貝里斯", code: "BZ" },
+                            { id: 148, name: "薩爾瓦多", code: "SV" },
+                            { id: 149, name: "宏都拉斯", code: "HN" },
+                            { id: 150, name: "尼加拉瓜", code: "NI" },
+                            { id: 151, name: "哥斯大黎加", code: "CR" },
+                            { id: 152, name: "巴拿馬", code: "PA" }
+                        ]
+                    },
+                    {
+                        id: "caribbean",
+                        name: "加勒比海地區",
+                        countries: [
+                            { id: 153, name: "古巴", code: "CU" },
+                            { id: 154, name: "牙買加", code: "JM" },
+                            { id: 155, name: "海地", code: "HT" },
+                            { id: 156, name: "多明尼加", code: "DO" },
+                            { id: 157, name: "巴哈馬", code: "BS" },
+                            { id: 158, name: "巴貝多", code: "BB" },
+                            { id: 159, name: "安地卡及巴布達", code: "AG" },
+                            { id: 160, name: "聖克里斯多福及尼維斯", code: "KN" },
+                            { id: 161, name: "多米尼克", code: "DM" },
+                            { id: 162, name: "聖露西亞", code: "LC" },
+                            { id: 163, name: "聖文森及格瑞那丁", code: "VC" },
+                            { id: 164, name: "格瑞那達", code: "GD" },
+                            { id: 165, name: "特立尼達和多巴哥", code: "TT" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "south-america",
+                name: "南美洲",
+                englishName: "South America",
+                subregions: [
+                    {
+                        id: "south-america-all",
+                        name: "南美洲全域",
+                        countries: [
+                            { id: 166, name: "巴西", code: "BR" },
+                            { id: 167, name: "阿根廷", code: "AR" },
+                            { id: 168, name: "哥倫比亞", code: "CO" },
+                            { id: 169, name: "秘魯", code: "PE" },
+                            { id: 170, name: "智利", code: "CL" },
+                            { id: 171, name: "委內瑞拉", code: "VE" },
+                            { id: 172, name: "厄瓜多", code: "EC" },
+                            { id: 173, name: "玻利維亞", code: "BO" },
+                            { id: 174, name: "巴拉圭", code: "PY" },
+                            { id: 175, name: "烏拉圭", code: "UY" },
+                            { id: 176, name: "蓋亞那", code: "GY" },
+                            { id: 177, name: "蘇利南", code: "SR" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "oceania",
+                name: "大洋洲",
+                englishName: "Oceania",
+                subregions: [
+                    {
+                        id: "aus-nz",
+                        name: "澳紐",
+                        countries: [
+                            { id: 178, name: "澳大利亞 (澳洲)", code: "AU" },
+                            { id: 179, name: "紐西蘭", code: "NZ" }
+                        ]
+                    },
+                    {
+                        id: "melanesia",
+                        name: "美拉尼西亞",
+                        countries: [
+                            { id: 180, name: "巴布亞紐幾內亞", code: "PG" },
+                            { id: 181, name: "所羅門群島", code: "SB" },
+                            { id: 182, name: "萬那杜", code: "VU" },
+                            { id: 183, name: "斐濟", code: "FJ" }
+                        ]
+                    },
+                    {
+                        id: "micronesia",
+                        name: "麥克羅尼西亞",
+                        countries: [
+                            { id: 184, name: "密克羅尼西亞聯邦", code: "FM" },
+                            { id: 185, name: "馬紹爾群島", code: "MH" },
+                            { id: 186, name: "帛琉", code: "PW" },
+                            { id: 187, name: "諾魯", code: "NR" },
+                            { id: 188, name: "吉里巴斯", code: "KI" }
+                        ]
+                    },
+                    {
+                        id: "polynesia",
+                        name: "玻里尼西亞",
+                        countries: [
+                            { id: 189, name: "圖瓦盧", code: "TV" },
+                            { id: 190, name: "薩摩亞", code: "WS" },
+                            { id: 191, name: "東加", code: "TO" },
+                            { id: 192, name: "庫克群島", code: "CK" },
+                            { id: 193, name: "紐埃", code: "NU" }
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        // Total count of supported countries
+        const TOTAL_COUNTRIES = 198;
+        // Total bits array (0 or 1) representing state
+        let bitState = new Array(TOTAL_COUNTRIES).fill(false);
+
+        /**
+         * App Initialization
+         */
+        window.onload = function() {
+            lucide.createIcons();
+            renderLayout();
+            
+            // Try loading state from URL search params if present
+            const urlParams = new URLSearchParams(window.location.search);
+            const qlcParam = urlParams.get('qlc');
+            if (qlcParam) {
+                loadFromQLCHex(qlcParam);
+            } else {
+                updateUI();
+            }
+        };
+
+        /**
+         * Render Main Hierarchical Accordions and Country Checkboxes
+         */
+        function renderLayout() {
+            const container = document.getElementById('continents-container');
+            container.innerHTML = '';
+
+            DATA.forEach(continent => {
+                const continentEl = document.createElement('section');
+                continentEl.id = `continent-${continent.id}`;
+                continentEl.className = "bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg transition-all";
+
+                // Count total countries in continent
+                let continentTotalCount = 0;
+                continent.subregions.forEach(sub => continentTotalCount += sub.countries.length);
+
+                // Continent Header
+                let subregionsHtml = '';
+                continent.subregions.forEach(sub => {
+                    let countriesGridHtml = '';
+                    sub.countries.forEach(country => {
+                        countriesGridHtml += `
+                            <label id="country-card-${country.id}" class="country-card cursor-pointer group flex items-center justify-between p-2.5 rounded-xl border border-slate-800/80 bg-slate-950/40 hover:bg-slate-800/50 hover:border-slate-700 transition-all select-none">
+                                <div class="flex items-center gap-2.5 min-w-0 pr-1">
+                                    <input type="checkbox" id="chk-${country.id}" onchange="toggleCountry(${country.id}, this.checked)" class="w-4 h-4 rounded border-slate-700 text-brand-500 focus:ring-brand-500 focus:ring-offset-slate-900 bg-slate-900 cursor-pointer accent-brand-500">
+                                    <span class="text-xs sm:text-sm font-medium text-slate-300 group-hover:text-white truncate country-name">${country.name}</span>
+                                </div>
+                                <span class="text-[10px] font-mono text-slate-500 group-hover:text-slate-400 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800 flex-shrink-0">${country.code}</span>
+                            </label>
+                        `;
+                    });
+
+                    subregionsHtml += `
+                        <div class="subregion-block p-4 sm:p-5 border-b last:border-b-0 border-slate-800/60 bg-slate-900/30">
+                            <div class="flex items-center justify-between mb-3.5">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-1.5 h-4 bg-brand-500 rounded-full"></div>
+                                    <h3 class="text-sm font-bold text-slate-200">${sub.name}</h3>
+                                    <span class="text-xs text-slate-500" id="subregion-count-${sub.id}">(0/${sub.countries.length})</span>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <button onclick="toggleSubregion('${sub.id}', true)" class="text-[11px] px-2 py-1 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded border border-slate-700/60 transition-colors">
+                                        全選區域
+                                    </button>
+                                    <button onclick="toggleSubregion('${sub.id}', false)" class="text-[11px] px-2 py-1 bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-red-400 rounded border border-slate-700/60 transition-colors">
+                                        清除
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
+                                ${countriesGridHtml}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                continentEl.innerHTML = `
+                    <div class="px-5 py-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between cursor-pointer select-none" onclick="toggleAccordion('${continent.id}')">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="map" class="w-5 h-5 text-brand-400"></i>
+                            <div>
+                                <h2 class="text-base font-bold text-white flex items-center gap-2">
+                                    ${continent.name}
+                                    <span class="text-xs font-normal text-slate-400">(${continent.englishName})</span>
+                                </h2>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span id="continent-badge-${continent.id}" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700/50">
+                                0 / ${continentTotalCount}
+                            </span>
+                            <i data-lucide="chevron-down" id="accordion-icon-${continent.id}" class="w-5 h-5 text-slate-400 transition-transform duration-200"></i>
+                        </div>
+                    </div>
+                    <div id="accordion-content-${continent.id}" class="transition-all duration-300">
+                        ${subregionsHtml}
+                    </div>
+                `;
+
+                container.appendChild(continentEl);
+            });
+
+            lucide.createIcons();
+        }
+
+        /**
+         * Checkbox & Bit State Operations
+         */
+        function toggleCountry(id, isChecked) {
+            bitState[id] = isChecked;
+            updateUI();
+        }
+
+        function toggleSubregion(subregionId, checkAll) {
+            DATA.forEach(continent => {
+                continent.subregions.forEach(sub => {
+                    if (sub.id === subregionId) {
+                        sub.countries.forEach(country => {
+                            bitState[country.id] = checkAll;
+                            const chk = document.getElementById(`chk-${country.id}`);
+                            if (chk) chk.checked = checkAll;
+                        });
+                    }
+                });
+            });
+            updateUI();
+        }
+
+        function toggleSelectAll(selectAll) {
+            bitState.fill(selectAll);
+            for (let i = 0; i < TOTAL_COUNTRIES; i++) {
+                const chk = document.getElementById(`chk-${i}`);
+                if (chk) chk.checked = selectAll;
+            }
+            updateUI();
+            showToast(selectAll ? "已選擇所有國家/地區" : "已清除所有選擇");
+        }
+
+        /**
+         * QLC Hex Encoding & Decoding Logic
+         */
+        function generateQLCHex() {
+            // Convert boolean array to hex string
+            // 198 bits -> ~25 bytes -> 50 Hex characters (or standard 64 hex characters for 256 bits)
+            const totalHexChars = 64; // 256 bits / 4 bits per hex
+            let hexStr = '';
+
+            for (let i = 0; i < totalHexChars * 4; i += 4) {
+                let nibble = 0;
+                for (let b = 0; b < 4; b++) {
+                    const bitIndex = i + b;
+                    if (bitIndex < TOTAL_COUNTRIES && bitState[bitIndex]) {
+                        nibble |= (1 << (3 - b));
+                    }
+                }
+                hexStr += nibble.toString(16);
+            }
+            return hexStr.toUpperCase();
+        }
+
+        function loadFromQLCHex(hexString) {
+            const cleanHex = hexString.trim().replace(/[^0-9A-Fa-f]/g, '');
+            if (!cleanHex) return false;
+
+            const newBits = new Array(TOTAL_COUNTRIES).fill(false);
+            for (let i = 0; i < cleanHex.length * 4; i++) {
+                if (i >= TOTAL_COUNTRIES) break;
+                const charIndex = Math.floor(i / 4);
+                const bitPos = 3 - (i % 4);
+                const nibble = parseInt(cleanHex[charIndex], 16);
+                if (!isNaN(nibble)) {
+                    if ((nibble & (1 << bitPos)) !== 0) {
+                        newBits[i] = true;
+                    }
+                }
+            }
+
+            bitState = newBits;
+            // Reflect on UI inputs
+            for (let i = 0; i < TOTAL_COUNTRIES; i++) {
+                const chk = document.getElementById(`chk-${i}`);
+                if (chk) chk.checked = bitState[i];
+            }
+
+            updateUI();
+            return true;
+        }
+
+        /**
+         * UI Update Loop
+         */
+        function updateUI() {
+            // 1. Calculate Statistics
+            const visitedCount = bitState.filter(Boolean).length;
+            const percentage = ((visitedCount / TOTAL_COUNTRIES) * 100).toFixed(1);
+
+            // 2. Update Header Counters
+            document.getElementById('stats-count').innerText = `${visitedCount} / ${TOTAL_COUNTRIES}`;
+            document.getElementById('stats-progress-bar').style.width = `${percentage}%`;
+            document.getElementById('stats-percent').innerText = `${percentage}%`;
+
+            // 3. Update QLC Code Display
+            const hexCode = generateQLCHex();
+            // Format into 8-character grouped string for superior readability
+            const formattedHex = hexCode.match(/.{1,8}/g).join(' ');
+            document.getElementById('qlc-code-display').innerText = formattedHex;
+
+            // 4. Update Continent & Subregion Badges + Card Highlight styles
+            DATA.forEach(continent => {
+                let continentVisited = 0;
+                let continentTotal = 0;
+
+                continent.subregions.forEach(sub => {
+                    let subVisited = 0;
+                    sub.countries.forEach(country => {
+                        continentTotal++;
+                        const isChecked = bitState[country.id];
+                        if (isChecked) {
+                            continentVisited++;
+                            subVisited++;
+                        }
+
+                        // Style active card
+                        const card = document.getElementById(`country-card-${country.id}`);
+                        if (card) {
+                            if (isChecked) {
+                                card.classList.add('bg-brand-500/10', 'border-brand-500/40');
+                                card.classList.remove('bg-slate-950/40', 'border-slate-800/80');
+                            } else {
+                                card.classList.remove('bg-brand-500/10', 'border-brand-500/40');
+                                card.classList.add('bg-slate-950/40', 'border-slate-800/80');
+                            }
+                        }
+                    });
+
+                    // Subregion count text
+                    const subCountEl = document.getElementById(`subregion-count-${sub.id}`);
+                    if (subCountEl) {
+                        subCountEl.innerText = `(${subVisited}/${sub.countries.length})`;
+                    }
+                });
+
+                // Continent header badge
+                const continentBadge = document.getElementById(`continent-badge-${continent.id}`);
+                if (continentBadge) {
+                    continentBadge.innerText = `${continentVisited} / ${continentTotal}`;
+                    if (continentVisited > 0) {
+                        continentBadge.className = "text-xs font-semibold px-2.5 py-1 rounded-full bg-brand-500/10 text-brand-400 border border-brand-500/30";
+                    } else {
+                        continentBadge.className = "text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700/50";
+                    }
+                }
+
+                // Quick jump continental tab badges
+                const tabBadge = document.getElementById(`badge-${continent.id}`);
+                if (tabBadge) {
+                    tabBadge.innerText = `${continentVisited}/${continentTotal}`;
+                }
+            });
+        }
+
+        /**
+         * Search & Filter Logic
+         */
+        function handleSearch(query) {
+            const cleanQuery = query.trim().toLowerCase();
+            const clearBtn = document.getElementById('search-clear-btn');
+            
+            if (cleanQuery.length > 0) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+
+            DATA.forEach(continent => {
+                let continentHasMatch = false;
+
+                continent.subregions.forEach(sub => {
+                    let subHasMatch = false;
+
+                    sub.countries.forEach(country => {
+                        const card = document.getElementById(`country-card-${country.id}`);
+                        const nameMatches = country.name.toLowerCase().includes(cleanQuery) || 
+                                            country.code.toLowerCase().includes(cleanQuery);
+
+                        if (card) {
+                            if (nameMatches || cleanQuery === '') {
+                                card.classList.remove('hidden');
+                                subHasMatch = true;
+                                continentHasMatch = true;
+                            } else {
+                                card.classList.add('hidden');
+                            }
+                        }
+                    });
+                });
+
+                const continentEl = document.getElementById(`continent-${continent.id}`);
+                if (continentEl) {
+                    if (continentHasMatch || cleanQuery === '') {
+                        continentEl.classList.remove('hidden');
+                    } else {
+                        continentEl.classList.add('hidden');
+                    }
+                }
+            });
+        }
+
+        function clearSearch() {
+            const input = document.getElementById('search-input');
+            input.value = '';
+            handleSearch('');
+        }
+
+        /**
+         * UI Accordion & Navigation Controls
+         */
+        function toggleAccordion(continentId) {
+            const content = document.getElementById(`accordion-content-${continentId}`);
+            const icon = document.getElementById(`accordion-icon-${continentId}`);
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.classList.remove('-rotate-90');
+            } else {
+                content.classList.add('hidden');
+                icon.classList.add('-rotate-90');
+            }
+        }
+
+        function scrollToContinent(continentId) {
+            const el = document.getElementById(`continent-${continentId}`);
+            if (el) {
+                // Ensure accordion is open
+                const content = document.getElementById(`accordion-content-${continentId}`);
+                if (content && content.classList.contains('hidden')) {
+                    toggleAccordion(continentId);
+                }
+                const yOffset = -140; // Offset for sticky top bar
+                const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                window.scrollTo({ top: y, behavior: 'smooth' });
+            }
+        }
+
+        /**
+         * Copy & Modal Operations
+         */
+        function copyQLC() {
+            const hexCode = generateQLCHex();
+            navigator.clipboard.writeText(hexCode).then(() => {
+                showToast("QLC 狀態碼已複製到剪貼簿！");
+            }).catch(() => {
+                showToast("複製失敗，請手動複製狀態碼");
+            });
+        }
+
+        function openImportModal() {
+            const modal = document.getElementById('import-modal');
+            const panel = document.getElementById('import-modal-panel');
+            document.getElementById('import-input').value = '';
+            document.getElementById('import-error').classList.add('hidden');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                panel.classList.remove('scale-95');
+                panel.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeImportModal() {
+            const modal = document.getElementById('import-modal');
+            const panel = document.getElementById('import-modal-panel');
+            modal.classList.add('opacity-0');
+            panel.classList.remove('scale-100');
+            panel.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        function processImport() {
+            const inputVal = document.getElementById('import-input').value;
+            const errorEl = document.getElementById('import-error');
+
+            if (!inputVal.trim()) {
+                errorEl.innerText = "請輸入 QLC 碼";
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            const success = loadFromQLCHex(inputVal);
+            if (success) {
+                closeImportModal();
+                showToast("QLC 狀態碼已順利載入！");
+            } else {
+                errorEl.innerText = "無效的 QLC Hex 碼格式";
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        /**
+         * Toast Notification Mechanism
+         */
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = "flex items-center gap-2 bg-slate-900 border border-brand-500/40 text-slate-100 px-4 py-3 rounded-xl shadow-2xl text-xs sm:text-sm font-medium transition-all transform translate-y-4 opacity-0 pointer-events-auto";
+            toast.innerHTML = `
+                <i data-lucide="check-circle-2" class="w-4 h-4 text-brand-400"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-4', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-4', 'opacity-0');
+                setTimeout(() => toast.remove(), 200);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
