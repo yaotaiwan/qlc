@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>快速點選罐頭回應</title>
+<style>
+:root{
+  --bg:#f5f4ef;--card:#fff;--text:#1f1f1d;--sub:#6b6a65;--line:#d9d7cf;
+  --acc-bg:#e6f1fb;--acc-text:#0c447c;--acc-line:#85b7eb;
+  --pri:#1f1f1d;--on-pri:#fff;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#1b1b19;--card:#2a2a27;--text:#f1efe8;--sub:#b4b2a9;--line:#4a4944;
+    --acc-bg:#0c447c;--acc-text:#e6f1fb;--acc-line:#378add;
+    --pri:#f1efe8;--on-pri:#1f1f1d;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;padding:16px;background:var(--bg);color:var(--text);
+  font-family:-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  max-width:520px;margin-inline:auto}
+button{font:inherit;color:inherit;background:var(--card);border:1px solid var(--line);cursor:pointer}
+.ttl{font-size:20px;font-weight:500;margin:0 0 14px}
+.seg{display:flex;gap:6px;margin-bottom:12px}
+.seg button{flex:1;padding:9px 4px;font-size:14px;border-radius:999px;white-space:nowrap}
+.seg button.on{background:var(--pri);color:var(--on-pri);border-color:var(--pri)}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:4px}
+.tabs button{padding:7px 12px;font-size:14px;border-radius:999px;white-space:nowrap;flex:none}
+.tabs button.on,.btns button.on{background:var(--acc-bg);color:var(--acc-text);border-color:var(--acc-line)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.btns button{padding:9px 14px;font-size:15px;border-radius:999px;white-space:nowrap}
+.ans{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-height:64px}
+.ans .k{font-size:12px;color:var(--sub);margin:0 0 4px}
+.ans .v{font-size:15px;line-height:1.6;margin:0}
+.sec{margin-bottom:14px}
+.sec .h{font-size:14px;font-weight:500;color:var(--acc-text);margin:0 0 6px}
+@media (prefers-color-scheme:light){.sec .h{color:#185fa5}}
+textarea{width:100%;font:inherit;font-size:15px;line-height:1.7;padding:10px;border-radius:8px;
+  resize:none;overflow:hidden;background:var(--card);color:var(--text);border:1px solid var(--line)}
+.bar{display:flex;gap:8px;margin-top:4px;align-items:center}
+.bar button{padding:9px 16px;border-radius:999px;font-size:14px}
+.st{font-size:13px;color:var(--sub);margin-left:auto}
+.emp{font-size:14px;color:var(--sub);margin:0 0 14px}
+</style>
+</head>
+<body>
+<p class="ttl">快速點選罐頭回應</p>
+<div class="seg" id="seg"></div>
+
+<div id="pg1">
+  <div class="tabs" id="tabs"></div>
+  <div class="btns" id="btns"></div>
+  <div class="ans"><p class="k" id="ak"></p><p class="v" id="av"></p></div>
+</div>
+
+<div id="pg2" style="display:none">
+  <div id="lst"></div>
+  <div class="bar">
+    <button id="copy">複製全部</button>
+    <button id="clr">清除</button>
+    <span class="st" id="st"></span>
+  </div>
+</div>
+
+<script>
+var D=[
+{n:"穿著",i:[
+["氣溫","富良野一月白天大約零下數度，早晚會更冷"],
+["洋蔥式穿搭","建議用洋蔥式穿法，排汗內層、保暖中層、防水外層"],
+["別穿牛仔褲","不建議穿牛仔褲或棉質衣物，濕了會很冷"],
+["暖暖包","如果還是怕冷，可以多帶暖暖包"]]},
+{n:"裝備租借",i:[
+["雪具","雪板、雪鞋、雪杖都可以現場租借"],
+["雪衣褲","雪衣褲也有租借服務"],
+["手套帽子","手套、帽子、護目鏡建議自備或另外租借"],
+["預約","旺季建議先預約，尺寸比較有保障"]]},
+{n:"課程",i:[
+["初學者","我們有初學者課程，從零開始教"],
+["團體或私人","課程分團體班和私人班，私人班費用較高但更彈性"],
+["中文教練","可以安排中文或英文教練，請先告訴我們需求"],
+["上課時間","一堂課大約兩到三小時，會依雪況調整"]]},
+{n:"住宿方案",i:[
+["套裝優惠","課程搭配住宿有套裝優惠，通常比分開訂划算"],
+["只上課","也可以只報名課程，不需要住宿"],
+["自訂住宿","住在自己訂的民宿也能上課，集合地點會另外告知"],
+["只住宿","只訂住宿也歡迎，不一定要上課"]]},
+{n:"雪場接駁",i:[
+["有接駁","民宿到雪場有接駁服務"],
+["接駁時間","詳細的接駁時間會在出發前一週通知"],
+["集合地點","接駁的集合地點在民宿門口"],
+["自行前往","如果自己前往，附近有停車場，冬天路況請小心"],
+["延誤處理","班機或交通延誤時請提早告訴我們，我們會協助調整"]]},
+{n:"機場交通",i:[
+["從機場過來","從新千歲機場搭巴士或火車到富良野，大約三小時多"],
+["自己租車","冬天路況需要雪地駕駛經驗，建議搭大眾運輸或接駁"],
+["抵達時間","建議下午四點前抵達，天黑後路況比較不好走"],
+["行李寄放","退房後可以寄放行李"]]}
+];
+
+var page=0,cur=0,sel={},txt={},last={};
+var $=function(i){return document.getElementById(i)};
+
+function cnt(){var n=0;for(var t in sel)for(var i in sel[t])if(sel[t][i])n++;return n}
+function tcount(t){var n=0;for(var i in (sel[t]||{}))if(sel[t][i])n++;return n}
+function build(t){
+  var a=[];
+  D[t].i.forEach(function(it,ii){if(sel[t]&&sel[t][ii])a.push(it[1])});
+  return a.length?a.join("，")+"。":"";
+}
+
+function renderSeg(){
+  var s=$("seg");s.innerHTML="";
+  ["常見問題","文字清單 ("+cnt()+")"].forEach(function(l,i){
+    var b=document.createElement("button");
+    b.textContent=l;if(i===page)b.className="on";
+    b.onclick=function(){page=i;render()};
+    s.appendChild(b);
+  });
+}
+
+function renderFaq(){
+  var tb=$("tabs"),bt=$("btns");tb.innerHTML="";bt.innerHTML="";
+  D.forEach(function(t,ti){
+    var b=document.createElement("button");
+    var c=tcount(ti);
+    b.textContent=t.n+(c?" "+c:"");
+    if(ti===cur)b.className="on";
+    b.onclick=function(){cur=ti;render()};
+    tb.appendChild(b);
+  });
+  D[cur].i.forEach(function(it,ii){
+    var b=document.createElement("button");
+    b.textContent=it[0];
+    if(sel[cur]&&sel[cur][ii])b.className="on";
+    b.onclick=function(){
+      sel[cur]=sel[cur]||{};
+      sel[cur][ii]=!sel[cur][ii];
+      last[cur]=ii;
+      txt[cur]=build(cur);
+      render();
+    };
+    bt.appendChild(b);
+  });
+  var l=last[cur];
+  if(l===undefined){
+    $("ak").textContent="完整回答";
+    $("av").textContent="點選按鈕，這裡會顯示對應的回答。";
+  }else{
+    var it=D[cur].i[l];
+    $("ak").textContent=it[0]+(sel[cur]&&sel[cur][l]?"（已加入）":"（已移除）");
+    $("av").textContent=it[1]+"。";
+  }
+}
+
+function grow(e){e.style.height="auto";e.style.height=(e.scrollHeight+2)+"px"}
+
+function renderList(){
+  var L=$("lst");L.innerHTML="";var any=false;
+  D.forEach(function(t,ti){
+    if(!txt[ti])return;
+    any=true;
+    var d=document.createElement("div");d.className="sec";
+    var h=document.createElement("p");h.className="h";h.textContent=t.n;
+    var a=document.createElement("textarea");a.value=txt[ti];
+    a.oninput=function(){txt[ti]=a.value;grow(a)};
+    d.appendChild(h);d.appendChild(a);L.appendChild(d);
+    setTimeout(function(){grow(a)},0);
+  });
+  if(!any){
+    var p=document.createElement("p");p.className="emp";
+    p.textContent="還沒有內容。到「常見問題」點選按鈕，回答會依分頁拼成段落，小標題就是分頁名稱。";
+    L.appendChild(p);
+  }
+}
+
+function compile(){
+  var ps=[];
+  D.forEach(function(t,ti){if(txt[ti])ps.push("【"+t.n+"】\n"+txt[ti])});
+  return ps.join("\n\n");
+}
+
+function render(){
+  renderSeg();
+  $("pg1").style.display=page===0?"block":"none";
+  $("pg2").style.display=page===1?"block":"none";
+  if(page===0)renderFaq();else renderList();
+  $("st").textContent="";
+}
+
+$("clr").onclick=function(){sel={};txt={};last={};render()};
+
+$("copy").onclick=function(){
+  var s=compile();
+  if(!s){$("st").textContent="還沒有內容";return}
+  var done=function(){$("st").textContent="已複製"};
+  var t=document.createElement("textarea");
+  t.value=s;t.style.position="absolute";t.style.opacity="0";
+  document.body.appendChild(t);
+  var fallback=function(){t.select();document.execCommand("copy");done()};
+  try{navigator.clipboard.writeText(s).then(done,fallback)}catch(e){fallback()}
+  setTimeout(function(){document.body.removeChild(t)},500);
+};
+
+render();
+</script>
+</body>
+</html>
