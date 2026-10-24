@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>去過的國家</title>
+<style>
+:root{--bg:#f2f5f6;--card:#fff;--ink:#12222b;--mute:#5d6f78;--line:#d3dce0;--acc:#0b7a85;--accbg:#d9eff1;--on:#fff;--bad:#a9391f;--badbg:#f8e3dd;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1a20;--card:#17262e;--ink:#e6eef1;--mute:#93a6af;--line:#2b3d46;--acc:#5cc3cd;--accbg:#173a40;--on:#0b1a1f;--bad:#f0a08c;--badbg:#3a2019}}
+:root[data-theme="dark"]{--bg:#0f1a20;--card:#17262e;--ink:#e6eef1;--mute:#93a6af;--line:#2b3d46;--acc:#5cc3cd;--accbg:#173a40;--on:#0b1a1f;--bad:#f0a08c;--badbg:#3a2019}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 -apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--card);z-index:10}
+button,textarea,input{font:inherit;color:inherit}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--card);border-bottom:1px solid var(--line);padding:10px 14px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+h1{font-size:17px;font-weight:500;margin:0}
+.stat{font-size:17px;font-weight:500;white-space:nowrap}
+.stat small{font-size:13px;color:var(--mute);font-weight:400}
+#prev{display:block;width:100%;margin-top:6px;text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:12px/1.5 ui-monospace,Menlo,monospace;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+nav{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px 4px}
+nav button{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 13px;font-size:14px;cursor:pointer;color:var(--mute)}
+nav button.on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+main{padding:6px 14px 40px}
+.pg{display:none}.pg.on{display:block}
+.blk{margin:14px 0 18px}
+.bh{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.bh button{border:1px solid var(--acc);background:transparent;color:var(--acc);border-radius:8px;padding:4px 11px;font-size:14px;font-weight:500;cursor:pointer}
+.bh button.full{background:var(--acc);color:var(--on)}
+.bh span{font-size:13px;color:var(--mute)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 12px;font-size:14px;cursor:pointer}
+.chips button.on{background:var(--accbg);border-color:var(--acc);color:var(--ink)}
+.chips button.ex{background:var(--badbg);border-color:var(--bad);color:var(--bad);text-decoration:line-through}
+.lab{display:flex;align-items:center;justify-content:space-between;margin:14px 0 6px;font-size:14px;font-weight:500}
+.cp{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:3px 11px;font-size:13px;cursor:pointer}
+textarea,input.code{width:100%;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px;font:13px/1.6 ui-monospace,Menlo,monospace}
+textarea{min-height:110px;resize:vertical}
+#bad{color:var(--bad);font-size:13px;min-height:20px;margin-top:4px}
+.help{font-size:13px;color:var(--mute);margin:6px 0 0}
+.help code{font:12px ui-monospace,Menlo,monospace;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+</style></head><body>
+<header>
+<div class="row"><h1>去過的國家</h1><div class="stat"><span id="em"></span> <span id="n">0</span> <small>/ 249</small></div></div>
+<button id="prev" aria-label="前往清單頁簽"></button>
+</header>
+<nav id="nav"></nav>
+<main id="main"></main>
+<script>
+var R=[
+["Africa","非洲",[["NorthAfrica","北非","DZ EG LY MA SD TN EH"],["EastAfrica","東非","BI IO KM DJ ER ET TF KE MG MW MU YT MZ RE RW SC SO SS UG TZ ZM ZW"],["MiddleAfrica","中非","AO CM CF TD CG CD GQ GA ST"],["SouthernAfrica","南部非洲","BW SZ LS NA ZA"],["WestAfrica","西非","BJ BF CV CI GM GH GN GW LR ML MR NE NG SH SN SL TG"]]],
+["Americas","美洲",[["Caribbean","加勒比海","AI AG AW BS BB BQ VG KY CU CW DM DO GD GP HT JM MQ MS PR BL KN LC MF VC SX TT TC VI"],["CentralAmerica","中美洲","BZ CR SV GT HN MX NI PA"],["SouthAmerica","南美洲","AR BO BV BR CL CO EC FK GF GS GY PY PE SR UY VE"],["NorthAmerica","北美洲","BM CA GL PM US"]]],
+["Asia","亞洲",[["CentralAsia","中亞","KZ KG TJ TM UZ"],["EastAsia","東亞","CN HK MO KP JP MN KR TW"],["SoutheastAsia","東南亞","BN KH ID LA MY MM PH SG TH TL VN"],["SouthAsia","南亞","AF BD BT IN IR MV NP PK LK"],["WestAsia","西亞","AM AZ BH CY GE IQ IL JO KW LB OM QA SA PS SY TR AE YE"]]],
+["Europe","歐洲",[["EastEurope","東歐","BY BG CZ HU PL MD RO RU SK UA"],["NorthEurope","北歐","AX DK EE FO FI GG IS IE IM JE LV LT NO SJ SE GB"],["SouthEurope","南歐","AL AD BA HR GI GR VA IT MT ME MK PT SM RS SI ES"],["WestEurope","西歐","AT BE FR DE LI LU MC NL CH"]]],
+["Oceania","大洋洲",[["AustraliaNZ","澳紐","AU CX CC HM NF NZ"],["Melanesia","美拉尼西亞","FJ NC PG SB VU"],["Micronesia","密克羅尼西亞","GU KI MH FM NR MP PW UM"],["Polynesia","玻里尼西亞","AS CK PF NU PN WS TK TO TV WF"]]],
+[null,"其他",[["Antarctica","南極洲","AQ"],["Custom","自訂（非 ISO）","XK"]]]
+];
+var MAP={},ALL=[],CODE={},S={},cur=0;
+R.forEach(function(r){var cs=[];r[2].forEach(function(s){s.c=s[2].split(" ");MAP[s[0].toLowerCase()]=s.c;cs=cs.concat(s.c)});r.c=cs;if(r[0])MAP[r[0].toLowerCase()]=cs;cs.forEach(function(c){CODE[c]=1;ALL.push(c)})});
+ALL.sort();
+var dn;try{dn=new Intl.DisplayNames(["zh-Hant"],{type:"region"})}catch(e){}
+function nm(c){if(c==="XK")return"科索沃";try{return dn.of(c)}catch(e){return c}}
+var $=function(i){return document.getElementById(i)};
+var tabs=["清單"].concat(R.map(function(r){return r[1]}));
+var nav=$("nav"),main=$("main"),h='<section class="pg on" id="p0"><div class="lab">清單<button class="cp" data-cp="list">複製</button></div><textarea id="list" spellcheck="false" autocapitalize="off" aria-label="清單"></textarea><div id="bad"></div><div class="lab">代碼<button class="cp" data-cp="code">複製</button></div><input class="code" id="code" spellcheck="false" autocapitalize="off" aria-label="代碼"><p class="help">國家用兩碼 <code>TW</code>，整區用 <code>@Asia</code>、<code>@EastAsia</code>，排除用 <code>-CN</code>。排除優先，順序不影響結果。可直接貼上或修改，離開輸入框後會自動整理成最短寫法。</p></section>';
+R.forEach(function(r,i){h+='<section class="pg" id="p'+(i+1)+'">';r[2].forEach(function(s,j){h+='<div class="blk"><div class="bh"><button data-s="'+i+"-"+j+'">'+s[1]+'</button><span id="c'+i+"-"+j+'"></span></div><div class="chips">'+s.c.map(function(c){return'<button data-c="'+c+'">'+nm(c)+'</button>'}).join("")+'</div></div>'});h+="</section>"});
+main.innerHTML=h;
+tabs.forEach(function(t,i){var b=document.createElement("button");b.textContent=t;b.onclick=function(){go(i)};nav.appendChild(b)});
+function go(i){cur=i;[].forEach.call(nav.children,function(b,k){b.className=k===i?"on":""});for(var k=0;k<tabs.length;k++)$("p"+k).className="pg"+(k===i?" on":"");window.scrollTo(0,0)}
+function parse(t){var inc={},exc={},bad=[];t.split(/[\s,;]+/).forEach(function(w){if(!w)return;var neg=w[0]==="-";if(neg)w=w.slice(1);var l;if(w[0]==="@")l=MAP[w.slice(1).toLowerCase()];else if(CODE[w.toUpperCase()])l=[w.toUpperCase()];if(!l){bad.push((neg?"-":"")+w);return}l.forEach(function(c){(neg?exc:inc)[c]=1})});var s={};for(var c in inc)if(!exc[c])s[c]=1;return{s:s,bad:bad}}
+function have(a){return a.filter(function(c){return S[c]})}
+function miss(a){return a.filter(function(c){return!S[c]})}
+function neg(a){return a.map(function(c){return"-"+c})}
+function subEnc(s){var h=have(s.c),m=miss(s.c);if(!h.length)return[];if(!m.length)return["@"+s[0]];var b=["@"+s[0]].concat(neg(m));return b.length<h.length?b:h}
+function enc(){var out=[];R.forEach(function(r){var A=[];r[2].forEach(function(s){A=A.concat(subEnc(s))});if(!r[0]||!have(r.c).length){out=out.concat(A);return}if(!miss(r.c).length){out.push("@"+r[0]);return}var B=["@"+r[0]];r[2].forEach(function(s){B=B.concat(have(s.c).length?neg(miss(s.c)):["-@"+s[0]])});out=out.concat(B.length<A.length?B:A)});
+var low=function(a,b){return a.toLowerCase()<b.toLowerCase()?-1:1};var at=out.filter(function(x){return x[0]==="@"}).sort(low),cs=out.filter(function(x){return x[0]!=="@"&&x[0]!=="-"}).sort(),ng=out.filter(function(x){return x[0]==="-"}).sort(low);return at.concat(cs,ng)}
+var A32="ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+function toCode(){var b="";ALL.forEach(function(c){b+=S[c]?"1":"0"});while(b.length%5)b+="0";var o="";for(var i=0;i<b.length;i+=5)o+=A32[parseInt(b.substr(i,5),2)];return"v1-"+o}
+function fromCode(t){t=t.trim().toUpperCase();if(t.indexOf("V1-")!==0)return null;var b="";for(var i=3;i<t.length;i++){var k=A32.indexOf(t[i]);if(k<0)return null;b+=("00000"+k.toString(2)).slice(-5)}if(b.length<ALL.length)return null;var s={};ALL.forEach(function(c,i){if(b[i]==="1")s[c]=1});return s}
+function emoji(n){return n>=200?"🥇":n>=100?"🥈":n>=10?"🥉":n>=1?"✈️":"🏠"}
+function upd(force){var t=enc(),ex={};t.forEach(function(x){if(x[0]==="-"&&x[1]!=="@")ex[x.slice(1)]=1});
+var n=0;for(var c in S)if(c!=="XK")n++;$("n").textContent=n;$("em").textContent=emoji(n);
+var txt=t.join(","),L=$("list"),C=$("code");$("prev").textContent=txt||"尚未選擇，點此編輯清單";
+if(force||document.activeElement!==L)L.value=txt;if(force||document.activeElement!==C)C.value=toCode();
+[].forEach.call(document.querySelectorAll("[data-c]"),function(b){var c=b.dataset.c;b.className=S[c]?"on":ex[c]?"ex":""});
+R.forEach(function(r,i){r[2].forEach(function(s,j){var h=have(s.c).length;$("c"+i+"-"+j).textContent=h+" / "+s.c.length;document.querySelector('[data-s="'+i+"-"+j+'"]').className=h===s.c.length?"full":""})})}
+main.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;if(b.dataset.c){var c=b.dataset.c;if(S[c])delete S[c];else S[c]=1;upd()}else if(b.dataset.s){var p=b.dataset.s.split("-"),s=R[p[0]][2][p[1]],all=!miss(s.c).length;s.c.forEach(function(c){if(all)delete S[c];else S[c]=1});upd()}else if(b.dataset.cp){var el=$(b.dataset.cp==="list"?"list":"code"),o=b.textContent;el.select();var ok=function(){b.textContent="已複製";setTimeout(function(){b.textContent=o},1200)};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(el.value).then(ok,function(){try{document.execCommand("copy")}catch(x){}ok()});else{try{document.execCommand("copy")}catch(x){}ok()}}});
+$("prev").onclick=function(){go(0)};
+$("list").addEventListener("input",function(){var p=parse(this.value);S=p.s;$("bad").textContent=p.bad.length?"無法辨識："+p.bad.join("、"):"";upd()});
+$("list").addEventListener("blur",function(){$("bad").textContent="";upd(true)});
+$("code").addEventListener("input",function(){var s=fromCode(this.value);if(s){S=s;$("bad").textContent="";upd()}else $("bad").textContent="代碼格式不符，現有勾選未變動"});
+$("code").addEventListener("blur",function(){$("bad").textContent="";upd(true)});
+S={TW:1,JP:1};go(0);upd(true);
+</script></body></html>
