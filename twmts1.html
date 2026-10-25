@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>台灣小百岳快選清單</title>
+<style>
+:root{--bg:#FAF9F5;--card:#fff;--tx:#141413;--mu:#73726C;--bd:#E3E0D5;--cl:#D97757;--tint:#F0EEE6;--sh:120px}
+@media(prefers-color-scheme:dark){:root{--bg:#262624;--card:#30302E;--tx:#FAF9F5;--mu:#A8A69C;--bd:#4A4944;--tint:#3A3935}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 -apple-system,"PingFang TC","Noto Sans TC",sans-serif}
+#top{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 12px 8px;border-bottom:.5px solid var(--bd)}
+#main{padding:8px 12px 40px}
+.row{display:flex;gap:8px;align-items:center}
+.ttl{font-size:17px;font-weight:600}
+#prog{margin-left:auto;font-size:14px;color:var(--mu)}
+.tabs{display:flex;gap:6px;margin:8px 0}
+button,input,textarea{font:inherit;color:var(--tx)}
+button{border:1px solid var(--bd);background:var(--card);border-radius:10px;padding:6px 12px;min-height:38px;cursor:pointer}
+button:active{transform:scale(.97)}
+.tabs button{flex:1}
+.tabs .act,.seg.act{background:var(--tint);font-weight:600;border-color:var(--mu)}
+.tools button{padding:6px 10px}
+.dim{color:var(--mu)}
+.sh{position:sticky;top:var(--sh);z-index:3;background:var(--bg);display:flex;justify-content:space-between;align-items:center;padding:10px 0 6px}
+.sh b{font-size:15px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.chip{border-radius:18px;font-size:15px;padding:7px 12px}
+.chip.on{background:var(--cl);border-color:var(--cl);color:#fff}
+.chip.ex{text-decoration:line-through;border-style:dashed;color:var(--mu);background:transparent}
+textarea,input{width:100%;border:1px solid var(--bd);background:var(--card);border-radius:10px;padding:8px 10px}
+textarea{resize:vertical}
+.mono{font-family:ui-monospace,Menlo,monospace;font-size:13px}
+.st{min-height:22px;font-size:13px;color:var(--mu);margin:8px 0 4px}
+.hint{font-size:13px;color:var(--cl);margin:6px 0}
+label{display:block;font-size:13px;color:var(--mu);margin:12px 0 4px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+.card.use{border-color:var(--cl)}
+.legend{font-size:12px;color:var(--mu);margin:10px 0 0}
+details{margin-top:12px}
+summary{cursor:pointer;color:var(--mu);font-size:14px}
+</style>
+</head>
+<body>
+<div id="top"></div>
+<div id="main"></div>
+<script>
+const DATA=[
+['北部中部',[
+['台北市',['大屯山','七星山','大崙頭山','劍潭山','南港山','二格山']],
+['新北市',['觀音山(新北)','基隆山','五分山','大尖山(新北)','土庫岳','大棟山(新北)','南勢角山','天上山','福德坑山','獅仔頭山','東眼山']],
+['基隆市',['大武崙山','槓子寮山','紅淡山','姜子寮山']],
+['桃園市',['金面山','溪洲山','石門山','石牛山','李棟山']],
+['新竹縣市',['十八尖山','中坑山','五指山','鵝公髻山']],
+['苗栗縣',['獅頭山','向天湖山','仙山','加里山','火炎山','關刀山','馬那邦山']],
+['台中市',['鐵砧山','稍來山','聚興山','頭嵙山','南觀音山','三汀山','暗影山','大橫屏山','阿罩霧山']],
+['南投縣',['九份二山','橫山','貓囒山','集集大山','後尖山','鳳凰山','金柑樹山']],
+['彰化雲林',['松柏坑山','石壁山','大尖山(雲林)']]]],
+['南部東部',[
+['嘉義縣市',['梨子腳山','獨立山','大塔山','大凍山','大湖尖山','紅毛埤山','三腳南山']],
+['台南市',['大棟山(台南)','崁頭山','西阿里關山','竹子尖山','刣牛湖山']],
+['高雄市',['藤枝山','白雲山','鳴海山','旗尾山','大崗山','觀音山(高雄)','壽山']],
+['屏東縣',['尾寮山','笠頂山','棚集山','女仍山','里龍山','大山母山']],
+['宜蘭縣',['灣坑頭山','三角崙山','鵲子山','三星山']],
+['花蓮縣',['卡拉寶山','立霧山','初音山','鯉魚山','月眉山','八里灣山','萬人山']],
+['台東縣',['都蘭山','太麻里山','加奈美山','巴塱衛山','紅頭山']],
+['離島',['雲台山','太武山','蛇頭山']]]]];
+const ALIAS={'鳶山':'福德坑山','飛鳳山':'中坑山','李崠山':'李棟山','雲嘉大尖山':'大尖山(雲林)','初英山':'初音山','薑子寮山':'姜子寮山'};
+const SECS=[],SECOF={},BASE={};
+DATA.forEach((t,ti)=>t[1].forEach(s=>{SECS.push({name:s[0],tab:ti,items:s[1]});s[1].forEach(n=>{SECOF[n]=s[0];const b=n.replace(/\(.*\)$/,'');(BASE[b]=BASE[b]||[]).push(n)})}));
+const ALL=[].concat(...SECS.map(s=>s.items));
+const SECBY={};SECS.forEach(s=>SECBY[s.name]=s);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const blank=()=>{const o={};SECS.forEach(s=>o[s.name]={at:false,ex:[],sel:[]});return o};
+let M={st:blank(),saves:[],active:null,nextId:1};
+let past=[],future=[],tab='text',sub='cur',remark='',hint='';
+const snap=()=>JSON.stringify(M);
+const on=(st,k,n)=>st[k].at?!st[k].ex.includes(n):st[k].sel.includes(n);
+const cnt=st=>ALL.filter(n=>on(st,SECOF[n],n)).length;
+function text(st){
+return SECS.map(s=>{const o=st[s.name];
+if(o.at)return ['@'+s.name].concat(s.items.filter(n=>o.ex.includes(n)).map(n=>'-'+n)).join(' ');
+return s.items.filter(n=>o.sel.includes(n)).join(', ')}).filter(Boolean).join(', ')}
+function code(st){
+const b=new Uint8Array(13);
+ALL.forEach((n,i)=>{if(on(st,SECOF[n],n))b[i>>3]|=1<<(i&7)});
+return btoa(String.fromCharCode.apply(null,b)).replace(/=+$/,'')}
+function decode(c){
+c=(c||'').replace(/\s/g,'');
+if(!/^[A-Za-z0-9+\/]+={0,2}$/.test(c))return null;
+while(c.length%4)c+='=';
+let raw;try{raw=atob(c)}catch(e){return null}
+if(raw.length!==13)return null;
+const bit=i=>(raw.charCodeAt(i>>3)>>(i&7))&1;
+const st=blank();let i=0;
+SECS.forEach(s=>{const sel=[];s.items.forEach(n=>{if(bit(i++))sel.push(n)});
+st[s.name]=sel.length===s.items.length?{at:true,ex:[],sel:[]}:{at:false,ex:[],sel:sel}});
+return st}
+function resolve(t){
+t=t.replace(/臺/g,'台');
+if(SECOF[t])return{full:t};
+if(ALIAS[t])return{full:ALIAS[t]};
+const l=BASE[t];
+if(l&&l.length===1)return{full:l[0]};
+if(l&&l.length>1)return{amb:true};
+return null}
+function parse(txt){
+const st=blank(),bad=[],amb=[];
+const toks=txt.replace(/臺/g,'台').replace(/（/g,'(').replace(/）/g,')').split(/[,，、;；\s]+/).filter(Boolean);
+toks.forEach(t=>{if(t[0]==='@'){const k=t.slice(1);if(st[k])st[k]={at:true,ex:[],sel:[]};else bad.push(t)}});
+toks.forEach(t=>{
+if(t[0]==='@')return;
+if(t[0]==='-'){const r=resolve(t.slice(1));
+if(r&&r.full){const k=SECOF[r.full];if(st[k].at&&!st[k].ex.includes(r.full))st[k].ex.push(r.full)}else bad.push(t);return}
+const r=resolve(t);
+if(r&&r.full){const k=SECOF[r.full];if(!st[k].at&&!st[k].sel.includes(r.full))st[k].sel.push(r.full)}
+else if(r&&r.amb)amb.push(t);else bad.push(t)});
+const m=[];
+if(amb.length)m.push('同名山請加縣市：'+amb.join('、')+'（例如 觀音山(高雄)）');
+if(bad.length)m.push('已略過無法辨識：'+bad.join('、'));
+return{st:st,msg:m.join('　')}}
+function sync(){
+if(M.active){const c=M.saves.find(s=>s.id===M.active);if(c)c.st=JSON.parse(JSON.stringify(M.st))}}
+function act(fn){
+past.push(snap());if(past.length>10)past.shift();
+future=[];
+const h=fn();sync();hint=h||'';render()}
+function undo(){
+if(!past.length)return;
+future.push(snap());if(future.length>10)future.shift();
+M=JSON.parse(past.pop());hint='';render()}
+function redo(){
+if(!future.length)return;
+past.push(snap());if(past.length>10)past.shift();
+M=JSON.parse(future.pop());hint='';render()}
+function copy(t,b){
+const done=()=>{const o=b.textContent;b.textContent='已複製';setTimeout(()=>{b.textContent=o},1200)};
+if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,()=>fb(t,done))}else fb(t,done)}
+function fb(t,done){
+const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();
+try{document.execCommand('copy')}catch(e){}
+a.remove();done()}
+function medal(n){return n>=100?'🥇':n>=50?'🥈':n>=10?'🥉':n>=1?'🥾':'🏠'}
+function render(){
+const n=cnt(M.st);
+$('top').innerHTML=
+'<div class="row"><span class="ttl">台灣小百岳快選清單</span><span id="prog">'+medal(n)+' '+n+'/100</span></div>'+
+'<div class="tabs">'+
+[['text','文字']].concat(DATA.map((t,i)=>['t'+i,t[0]])).map(t=>'<button class="'+(tab===t[0]?'act':'')+'" data-tab="'+t[0]+'">'+t[1]+'</button>').join('')+
+'</div>'+
+'<div class="row tools">'+
+'<button data-a="undo" class="'+(past.length?'':'dim')+'">↶ 上一步 ('+past.length+')</button>'+
+'<button data-a="redo" class="'+(future.length?'':'dim')+'">下一步 ('+future.length+') ↷</button>'+
+'<button data-a="clear" style="margin-left:auto">全部清空</button></div>';
+let h='';
+if(tab==='text'){
+h+='<div class="row" style="margin-top:6px"><button class="seg '+(sub==='cur'?'act':'')+'" data-sub="cur" style="flex:1">目前</button><button class="seg '+(sub==='sav'?'act':'')+'" data-sub="sav" style="flex:1">暫存 ('+M.saves.length+')</button></div>';
+if(sub==='cur'){
+const a=M.saves.find(s=>s.id===M.active);
+h+='<div class="st">'+(a?'使用中：'+esc(a.remark):(n?'未存':''))+'</div>';
+h+='<textarea id="ta" rows="7" placeholder="點選小百岳，或直接輸入山名、@縣市、-排除">'+esc(text(M.st))+'</textarea>';
+if(hint)h+='<div class="hint">'+esc(hint)+'</div>';
+h+='<div class="row" style="margin-top:8px"><button data-a="copycur">複製清單</button></div>';
+h+='<label>代碼（可貼上）</label><div class="row"><input id="ci" class="mono" value="'+code(M.st)+'"><button data-a="copycode">複製</button></div>';
+h+='<label>存成暫存</label><div class="row"><input id="rm" placeholder="備註，例如 小明2012" value="'+esc(remark)+'"><button data-a="save">存</button></div>';
+}else{
+if(hint)h+='<div class="hint">'+esc(hint)+'</div>';
+if(!M.saves.length)h+='<p class="dim" style="font-size:14px">還沒有暫存清單。到「目前」存一份。</p>';
+h+=M.saves.map(c=>'<div class="card'+(c.id===M.active?' use':'')+'" data-load="'+c.id+'"><div class="row"><b style="font-size:15px">'+esc(c.remark)+'</b>'+(c.id===M.active?'<span class="dim" style="font-size:12px">使用中</span>':'')+'<span class="dim" style="margin-left:auto;font-size:13px">'+cnt(c.st)+'/100</span><button data-del="'+c.id+'" aria-label="刪除" style="min-height:30px;padding:2px 9px">✕</button></div><div class="mono dim" style="margin-top:4px">'+code(c.st)+'</div></div>').join('');
+if(M.saves.length)h+='<button data-a="copyall" style="width:100%">複製全部（以 * 分隔）</button>';
+h+='<details><summary>匯入暫存</summary><textarea id="imp" rows="4" class="mono" placeholder="備註 代碼&#10;*&#10;備註 代碼" style="margin-top:8px"></textarea><div class="row" style="margin-top:8px"><button data-a="imp">匯入</button></div></details>';
+}
+}else{
+const ti=+tab.slice(1);
+SECS.filter(s=>s.tab===ti).forEach(s=>{
+const o=M.st[s.name],c=s.items.filter(x=>on(M.st,s.name,x)).length;
+h+='<div class="sh"><b>'+s.name+' <span class="dim" style="font-weight:400">'+c+'/'+s.items.length+'</span></b><button class="chip'+(o.at?' on':'')+'" data-at="'+s.name+'">@全選</button></div>';
+h+='<div class="chips">'+s.items.map(x=>{const k=on(M.st,s.name,x)?' on':(o.at?' ex':'');return '<button class="chip'+k+'" data-n="'+s.name+'|'+x+'">'+x+'</button>'}).join('')+'</div>';
+});
+h+='<p class="legend">實心＝已選；虛線加刪除線＝區塊全選後排除。</p>';
+}
+$('main').innerHTML=h;
+document.documentElement.style.setProperty('--sh',$('top').offsetHeight+'px');
+}
+document.addEventListener('click',e=>{
+const t=e.target.closest('[data-tab],[data-sub],[data-at],[data-n],[data-load],[data-del],[data-a]');
+if(!t)return;
+const d=t.dataset;
+if(d.del){const id=+d.del;act(()=>{M.saves=M.saves.filter(s=>s.id!==id);if(M.active===id)M.active=null});return}
+if(d.tab){tab=d.tab;hint='';render();window.scrollTo(0,0);return}
+if(d.sub){sub=d.sub;hint='';render();return}
+if(d.at){const k=d.at,o=M.st[k];act(()=>{M.st[k]=o.at?{at:false,ex:[],sel:[]}:{at:true,ex:[],sel:[]}});return}
+if(d.n){const p=d.n.split('|'),o=M.st[p[0]];act(()=>{const arr=o.at?o.ex:o.sel,i=arr.indexOf(p[1]);if(i<0)arr.push(p[1]);else arr.splice(i,1)});return}
+if(d.load){const c=M.saves.find(s=>s.id===+d.load);if(!c)return;act(()=>{M.st=JSON.parse(JSON.stringify(c.st));M.active=c.id});sub='cur';render();return}
+const a=d.a;
+if(a==='undo')undo();
+else if(a==='redo')redo();
+else if(a==='clear')act(()=>{M.st=blank()});
+else if(a==='save'){const r=($('rm').value||'').trim()||('#'+M.nextId);remark='';act(()=>{const id=M.nextId++;M.saves.push({id:id,remark:r,st:JSON.parse(JSON.stringify(M.st))});M.active=id})}
+else if(a==='copycur')copy(text(M.st),t);
+else if(a==='copycode')copy(code(M.st),t);
+else if(a==='copyall')copy(M.saves.map(c=>c.remark+' '+code(c.st)).join('\n*\n'),t);
+else if(a==='imp'){
+const v=$('imp').value.trim();if(!v)return;
+act(()=>{let ok=0,bad=0;
+v.split(/\r?\n\s*\*\s*\r?\n/).forEach(ch=>{
+const p=ch.trim().split(/\s+/);const c=p.pop();const st=decode(c);
+if(!st){bad++;return}
+M.saves.push({id:M.nextId,remark:p.join(' ')||('#'+M.nextId),st:st});M.nextId++;ok++});
+return '已匯入 '+ok+' 筆'+(bad?'，略過 '+bad+' 筆格式不符':'')})}
+});
+document.addEventListener('change',e=>{
+if(e.target.id==='ta'){const r=parse(e.target.value);act(()=>{M.st=r.st;return r.msg})}
+else if(e.target.id==='ci'){const st=decode(e.target.value);
+if(st)act(()=>{M.st=st});
+else{hint='代碼格式不正確';render()}}
+});
+document.addEventListener('input',e=>{if(e.target.id==='rm')remark=e.target.value});
+window.addEventListener('resize',()=>{document.documentElement.style.setProperty('--sh',$('top').offsetHeight+'px')});
+render();
+</script>
+</body>
+</html>
