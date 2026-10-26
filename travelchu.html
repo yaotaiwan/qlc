@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>旅行打包清單</title>
+<style>
+:root{--bg:#faf9f5;--tx:#141413;--ac:#d97757;--gr:#b0aea5;--lt:#e8e6dc}
+*{box-sizing:border-box}
+body{margin:0 auto;max-width:560px;padding:12px;background:var(--bg);color:var(--tx);font:15px/1.5 -apple-system,"Noto Sans TC",sans-serif}
+header{display:flex;justify-content:space-between;align-items:center}
+h1{font-size:18px;margin:0}
+#cnt{color:var(--ac);font-weight:600}
+.bar{display:flex;gap:6px;margin:8px 0}
+button{font:inherit;cursor:pointer}
+.mini,.bar button{border:1px solid var(--gr);background:#fff;border-radius:8px;padding:4px 10px;color:var(--tx)}
+#tb{display:flex;overflow-x:auto;white-space:nowrap;border-bottom:1px solid var(--lt);margin-bottom:8px}
+.t{border:0;background:none;padding:8px 12px;color:var(--gr)}
+.t.on{color:var(--tx);border-bottom:2px solid var(--ac);font-weight:600}
+.sh{display:flex;align-items:center;gap:8px;margin:12px 0 4px}
+.sh span{color:var(--gr);font-size:13px;flex:1}
+.pill{border:1px solid var(--gr);background:#fff;border-radius:999px;padding:6px 12px;margin:3px 2px;color:var(--tx)}
+.pill.on{background:var(--ac);border-color:var(--ac);color:#fff}
+.pill.ex{text-decoration:line-through;opacity:.7}
+label{display:flex;justify-content:space-between;align-items:center;margin:12px 0 4px;font-weight:600}
+textarea,input{width:100%;border:1px solid var(--gr);border-radius:10px;padding:8px;font:14px/1.5 inherit;background:#fff;color:var(--tx)}
+textarea{min-height:84px;resize:vertical}
+#cand{min-height:8px}
+.chip{border:1px solid var(--ac);color:var(--ac);background:#fff;border-radius:999px;padding:3px 10px;margin:4px 3px 0 0}
+.cd{position:relative;border:1px solid var(--lt);background:#fff;border-radius:10px;padding:8px 28px 8px 10px;margin:6px 0}
+.cd small{display:block;color:var(--gr);word-break:break-all}
+.x{position:absolute;right:6px;top:4px;border:0;background:none;color:var(--gr);font-size:18px}
+.row{display:flex;gap:6px}
+</style></head><body>
+<header><h1>旅行打包清單</h1><span id="cnt"></span></header>
+<div class="bar">
+<button id="un">↶ <span id="nu">0</span></button>
+<button id="re">↷ <span id="nr">0</span></button>
+<button id="cl">清除</button>
+</div>
+<div id="tb"></div>
+
+<div id="main">
+<label>語法（可編輯）<button class="mini" data-copy="#syn">複製</button></label>
+<textarea id="syn" placeholder="輸入或貼上，例如 @證件, -台胞證"></textarea>
+<div id="cand"></div>
+<label>代碼<button class="mini" data-copy="#code">複製</button></label>
+<input id="code">
+<label>純文字<button class="mini" data-copy="#plain">複製</button></label>
+<textarea id="plain" readonly></textarea>
+<label>備忘錄<button class="mini" data-copy="#memo">複製</button></label>
+<textarea id="memo" readonly></textarea>
+<label>暫存（關閉頁面即消失）</label>
+<div class="row"><input id="rm" placeholder="備註，例如 日本冬季"><button class="mini" id="sv">存入</button></div>
+<div id="cd"></div>
+</div>
+<div id="pp"></div>
+
+<script>
+const TABS=[
+{n:"證件",s:[
+ {n:"證件",i:["護照","國際駕照","駕照日文譯本","台胞證","身分證"]},
+ {n:"通關資料",i:["簽證","機票","保險資料","住宿資料","護照影本","護照備用照片"]}]},
+{n:"手機",s:[
+ {n:"手機相關",i:["手機","充電線","充電器","行動電源","耳機","手機夾","手機腳架","網卡"]}]},
+{n:"藥衛妝",s:[
+ {n:"藥品",i:["個人藥品","止痛藥","腸胃藥","感冒藥","OK繃"]},
+ {n:"衛生",i:["牙刷","牙膏","肥皂","毛巾","衛生紙"]},
+ {n:"保養",i:["防曬","護唇膏","乳液"]}]},
+{n:"打包",s:[
+ {n:"包包",i:["後背包","折疊托特包","防水袋","壓縮袋"]},
+ {n:"筆記器具",i:["筆","筆記本"]}]},
+{n:"衣裝其他",s:[
+ {n:"夏季",i:["排汗衫T恤","運動短褲","無袖汗衫"]},
+ {n:"常年",i:["薄夾克","襪","鞋","拖鞋","帽子","墨鏡","輕便雨衣","折疊雨傘","耳塞"]},
+ {n:"冬季",i:["長褲","刷毛外套","羽絨衣","頭套"]},
+ {n:"嚴寒",i:["防風厚夾克"]},
+ {n:"裝備",i:["開罐器","水壺","頭燈"]},
+ {n:"露營",i:["充氣墊","充氣枕","帳篷","睡袋"]}]}
+];
+const $=s=>document.querySelector(s);
+const ALL=[],SECS=[];
+TABS.forEach(t=>t.s.forEach(s=>{const o={n:s.n,ix:[]};s.i.forEach(x=>{o.ix.push(ALL.length);ALL.push({n:x})});SECS.push(o)}));
+const N=ALL.length,byName=new Map(ALL.map((a,i)=>[a.n,i])),secBy=new Map(SECS.map(s=>[s.n,s]));
+let sel=Array(N).fill(false),undo=[],redo=[],tab=0,saved=[];
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const SEP=/[,，、;；\n]+/;
+
+function commit(ns){
+ if(ns.every((v,i)=>v===sel[i]))return;
+ undo.push(sel.slice());if(undo.length>10)undo.shift();
+ redo=[];sel=ns;render();
+}
+function syn(){
+ const ex=new Set(),p=[];
+ if(sel.every(Boolean))return{t:"@全選",ex};
+ SECS.forEach(s=>{
+  const on=s.ix.filter(i=>sel[i]),off=s.ix.filter(i=>!sel[i]);
+  if(!on.length)return;
+  if(!off.length){p.push("@"+s.n);return}
+  if(s.ix.length>=5&&off.length<=2&&on.length>off.length){
+   p.push("@"+s.n);off.forEach(i=>{p.push("-"+ALL[i].n);ex.add(i)});
+  }else on.forEach(i=>p.push(ALL[i].n));
+ });
+ return{t:p.join(", "),ex};
+}
+function parse(t){
+ const ns=Array(N).fill(false);
+ t.split(SEP).map(x=>x.trim()).filter(Boolean).forEach(k=>{
+  if(k==="@全選"){ns.fill(true);return}
+  if(k[0]==="@"){const s=secBy.get(k.slice(1));if(s)s.ix.forEach(i=>ns[i]=true);return}
+  if(k[0]==="-"){const i=byName.get(k.slice(1));if(i!=null)ns[i]=false;return}
+  const i=byName.get(k);if(i!=null)ns[i]=true;
+ });
+ return ns;
+}
+function enc(){
+ const b=new Uint8Array(Math.ceil(N/8));
+ sel.forEach((v,i)=>{if(v)b[i>>3]|=1<<(i&7)});
+ return"QLC1.travel."+btoa(String.fromCharCode(...b)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+function dec(c){
+ try{
+  c=c.trim().replace(/^.*\./,"").replace(/-/g,"+").replace(/_/g,"/");
+  const r=atob(c+"=".repeat((4-c.length%4)%4));
+  return Array.from({length:N},(_,i)=>(i>>3)<r.length&&!!((r.charCodeAt(i>>3)>>(i&7))&1));
+ }catch(e){return null}
+}
+
+function tabbar(){
+ $("#tb").innerHTML=["文字代碼",...TABS.map(t=>t.n)].map((n,i)=>
+  `<button class="t${i==tab?" on":""}" data-tab="${i}">${n}</button>`).join("");
+}
+function pills(){
+ const{ex}=syn();let h="";
+ TABS.forEach((t,ti)=>{
+  h+=`<div ${tab==ti+1?"":"hidden"}>`;
+  t.s.forEach(s=>{
+   const sc=secBy.get(s.n),c=sc.ix.filter(i=>sel[i]).length;
+   h+=`<div class="sh"><b>${s.n}</b><span>${c}/${sc.ix.length}</span><button class="mini" data-sec="${s.n}">${c==sc.ix.length?"取消全選":"全選"}</button></div><div>`;
+   sc.ix.forEach(i=>h+=`<button class="pill${sel[i]?" on":""}${ex.has(i)?" ex":""}" data-i="${i}">${ALL[i].n}${ALL[i].n==="護照"?"⭐️":""}</button>`);
+   h+="</div>";
+  });
+  h+="</div>";
+ });
+ $("#pp").innerHTML=h;
+}
+function outs(skip){
+ const set=(id,v)=>{const el=$(id);if(el!==skip)el.value=v};
+ set("#syn",syn().t);
+ set("#code",enc());
+ set("#plain",ALL.filter((a,i)=>sel[i]).map(a=>a.n).join(","));
+ const m=[];
+ SECS.forEach(s=>{const on=s.ix.filter(i=>sel[i]);if(on.length){m.push(s.n);on.forEach(i=>m.push(ALL[i].n));m.push("")}});
+ set("#memo",m.join("\n").trim());
+ $("#cnt").textContent=sel.filter(Boolean).length+" / "+N;
+ $("#nu").textContent=undo.length;$("#nr").textContent=redo.length;
+}
+function cards(){
+ $("#cd").innerHTML=saved.map((s,i)=>
+  `<div class="cd" data-k="${i}"><b>${esc(s.r)}</b><small>${esc(s.t)}</small><button class="x" data-del="${i}">×</button></div>`).join("")||"<small>尚無暫存</small>";
+}
+function render(){
+ tabbar();pills();outs();
+ $("#main").hidden=tab!==0;
+}
+
+function editor(el,fn){
+ let snap;
+ el.addEventListener("focus",()=>snap=sel.slice());
+ el.addEventListener("input",()=>{const ns=fn(el.value);if(ns){sel=ns;pills();outs(el)}});
+ el.addEventListener("blur",()=>{const cur=sel;sel=snap||cur;commit(cur);render();$("#cand").innerHTML=""});
+}
+editor($("#syn"),parse);
+editor($("#code"),dec);
+
+function cand(){
+ const el=$("#syn"),c=el.selectionStart,t=el.value;
+ let st=0;
+ for(let k=c-1;k>=0;k--){if(/[,，、;；\n]/.test(t[k])){st=k+1;break}}
+ const q=t.slice(st,c).trim(),pre=(q[0]==="@"||q[0]==="-")?q[0]:"",qq=q.slice(pre.length);
+ if(!qq){$("#cand").innerHTML="";return}
+ let pool=[];
+ if(pre==="@")pool=SECS.map(s=>"@"+s.n);
+ else if(pre==="-")pool=ALL.map(a=>"-"+a.n);
+ else pool=ALL.map(a=>a.n).concat(SECS.map(s=>"@"+s.n));
+ const L=pool.filter(v=>v.slice(pre.length).includes(qq)&&v!==q).slice(0,8);
+ $("#cand").innerHTML=L.map(v=>`<button class="chip" data-v="${v}">${v}</button>`).join("");
+}
+$("#syn").addEventListener("input",cand);
+$("#syn").addEventListener("click",cand);
+$("#cand").addEventListener("pointerdown",e=>{
+ const b=e.target.closest("[data-v]");if(!b)return;
+ e.preventDefault();
+ const el=$("#syn"),c=el.selectionStart,t=el.value;
+ let st=0;
+ for(let k=c-1;k>=0;k--){if(/[,，、;；\n]/.test(t[k])){st=k+1;break}}
+ const sp=t.slice(st,c).match(/^\s*/)[0],v=b.dataset.v;
+ el.value=t.slice(0,st)+sp+v+", "+t.slice(c);
+ const p=st+sp.length+v.length+2;
+ el.setSelectionRange(p,p);
+ el.dispatchEvent(new Event("input"));
+});
+$("#syn").addEventListener("keydown",e=>{
+ if(e.key!=="Backspace")return;
+ const el=e.target;
+ if(el.selectionStart!==el.selectionEnd)return;
+ const t=el.value,c=el.selectionStart;
+ let e2=c;
+ while(e2>0&&/[\s,，、;；]/.test(t[e2-1]))e2--;
+ if(e2===0)return;
+ let s=e2;
+ while(s>0&&!/[,，、;；\n]/.test(t[s-1]))s--;
+ const tok=t.slice(s,e2).trim(),name=tok.replace(/^[@-]/,"");
+ if(!(byName.has(name)||secBy.has(name)||tok==="@全選"))return;
+ e.preventDefault();
+ el.value=t.slice(0,s)+t.slice(c);
+ el.setSelectionRange(s,s);
+ el.dispatchEvent(new Event("input"));
+});
+
+async function copy(id,b){
+ const el=$(id);
+ try{await navigator.clipboard.writeText(el.value)}catch(e){el.select();document.execCommand("copy")}
+ const o=b.textContent;b.textContent="已複製";setTimeout(()=>b.textContent=o,1200);
+}
+document.addEventListener("click",e=>{
+ const g=k=>e.target.closest("["+k+"]");
+ let b;
+ if(b=g("data-copy"))return copy(b.dataset.copy,b);
+ if(b=g("data-tab")){tab=+b.dataset.tab;return render()}
+ if(b=g("data-i")){const ns=sel.slice(),i=+b.dataset.i;ns[i]=!ns[i];return commit(ns)}
+ if(b=g("data-sec")){
+  const ix=secBy.get(b.dataset.sec).ix,all=ix.every(i=>sel[i]),ns=sel.slice();
+  ix.forEach(i=>ns[i]=!all);return commit(ns);
+ }
+ if(b=g("data-del")){saved.splice(+b.dataset.del,1);return cards()}
+ if(b=g("data-k"))return commit(parse(saved[+b.dataset.k].t));
+});
+$("#un").onclick=()=>{if(!undo.length)return;redo.push(sel.slice());sel=undo.pop();render()};
+$("#re").onclick=()=>{if(!redo.length)return;undo.push(sel.slice());sel=redo.pop();render()};
+$("#cl").onclick=()=>commit(Array(N).fill(false));
+$("#sv").onclick=()=>{saved.unshift({r:$("#rm").value||"未命名",t:syn().t});$("#rm").value="";cards()};
+render();cards();
+</script></body></html>
