@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>戶外裝備快選清單</title>
+<style>
+:root{
+  --bg:#faf9f5;--card:#f0eee6;--text:#1f1e1d;--text2:#6b6a65;--text3:#9a988f;
+  --line:rgba(31,30,29,.15);--line2:rgba(31,30,29,.3);
+  --accent:#c96442;--accent-bg:#f6e3da;--accent-text:#8f3f22;--on-dark:#faf9f5;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#262624;--card:#30302e;--text:#f0eee6;--text2:#b5b3aa;--text3:#85837b;
+    --line:rgba(240,238,230,.15);--line2:rgba(240,238,230,.3);
+    --accent:#d97757;--accent-bg:#4a2f24;--accent-text:#f0b9a3;--on-dark:#262624;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;padding:16px;max-width:560px;margin-inline:auto;background:var(--bg);color:var(--text);font-family:-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;font-size:16px;line-height:1.6}
+h1{font-size:20px;font-weight:500;margin:0 0 12px}
+button,input,textarea{font:inherit;color:var(--text)}
+button{background:transparent;border:0.5px solid var(--line2);border-radius:8px;padding:6px 12px;cursor:pointer}
+button:active{transform:scale(.98)}
+input,textarea{background:var(--card);border:0.5px solid var(--line);border-radius:8px;padding:8px 10px}
+.tb{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;border-bottom:0.5px solid var(--line)}
+.tb button{flex:none;border-radius:999px;padding:6px 14px;font-size:14px;white-space:nowrap}
+.tb button.on{background:var(--text);color:var(--on-dark);border-color:var(--text)}
+.sh{display:flex;align-items:center;gap:8px;margin-top:16px}
+.sh b{font-weight:500;font-size:15px;flex:1}
+.sh button{font-size:12px;padding:3px 10px;border-radius:999px}
+.pl{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+.pl button{border-radius:999px;padding:7px 13px;font-size:15px}
+.pl button.s,.seg button.s{background:var(--accent-bg);color:var(--accent-text);border-color:var(--accent)}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{border-radius:999px;font-size:14px;padding:5px 12px}
+textarea{width:100%;min-height:84px;font-size:15px;line-height:1.6;resize:vertical}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.lb{font-size:13px;color:var(--text2)}
+.cd{border:0.5px solid var(--line);border-radius:8px;padding:8px 12px;margin-top:8px;display:flex;gap:8px;align-items:flex-start}
+.cd div{flex:1;cursor:pointer;min-width:0}
+.cd b{font-weight:500;font-size:14px}
+.cd span{display:block;font-size:12px;color:var(--text2);font-family:ui-monospace,Menlo,monospace;word-break:break-all;margin-top:2px}
+.cd button{border:none;font-size:16px;padding:0 4px;color:var(--text3)}
+hr{border:none;border-top:0.5px solid var(--line);margin:16px 0 0}
+</style>
+</head>
+<body>
+<h1>戶外裝備快選清單</h1>
+<div id="tb" class="tb"></div>
+<div id="pg"></div>
+<script>
+const T=[
+["水域獨木舟",[["水域","泳衣,浮潛面鏡,呼吸管,蛙鞋,救生衣,水鞋,防曬乳,毛巾,防水袋,防水手機袋"],["激流獨木舟","激流艇,槳,頭盔,救生衣,裙圍,浮力袋,拋繩袋,乾衣褲,水鞋,哨子"],["海洋獨木舟","海洋艇,槳,救生衣,裙圍,手動抽水器,浮力袋,拖繩,防水袋,防水手機袋,帽子"]]],
+["單車露營",[["單車","單車,安全帽,手套,水壺,補胎工具,打氣筒,車燈,車鎖,車衣褲,墨鏡"],["露營","帳篷,睡袋,睡墊,營燈,爐具,鍋具,瓦斯,餐具,地釘,垃圾袋"]]],
+["攀岩爬樹",[["攀岩","岩鞋,吊帶,頭盔,粉袋,粉,主繩,快扣,確保器,鎖鉤,扁帶"],["登山","登山背包,登山鞋,登山杖,頭燈,雨衣,保暖層,水壺,行動糧,急救包,地圖指北針"],["爬樹","攀樹吊帶,攀樹繩,擲線袋,擲線,上升器,下降器,頭盔,手套,鎖鉤,扁帶"]]]
+];
+const S=[];T.forEach(t=>t[1].forEach(s=>S.push([s[0],s[1].split(",")])));
+const U=[];S.forEach(s=>s[1].forEach(n=>{if(U.indexOf(n)<0)U.push(n)}));
+const A="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+let sel=new Set(),saved=[],tab=0,mode="syn",cmode="syn",note="";
+
+function code(s){let o="";for(let i=0;i<U.length;i+=6){let v=0;for(let j=0;j<6;j++)v=v*2+((i+j<U.length&&s.has(U[i+j]))?1:0);o+=A[v]}return o}
+function decode(c){const s=new Set();let k=0;for(const ch of c){const v=A.indexOf(ch);if(v<0)continue;for(let j=5;j>=0;j--){if(k<U.length&&((v>>j)&1))s.add(U[k]);k++}}return s}
+
+function parse(str){const s=new Set();let bad=0;
+str.split(/[,，、;\n]+/).map(x=>x.trim()).filter(Boolean).forEach(t=>{
+if(t==="@全選"){U.forEach(n=>s.add(n));return}
+if(t[0]==="@"){const f=S.find(x=>x[0]===t.slice(1));if(f)f[1].forEach(n=>s.add(n));else bad++;return}
+if(t[0]==="-"){const n=t.slice(1);if(U.indexOf(n)>=0)s.delete(n);else bad++;return}
+if(U.indexOf(t)>=0)s.add(t);else bad++});
+return [s,bad]}
+
+function syn(s){const at=[],rem=[],cov=new Set();
+S.forEach(x=>{const m=x[1].filter(n=>!s.has(n));
+if(m.length===0||(x[1].length-m.length>=7&&m.length<=3)){
+at.push("@"+x[0]);m.forEach(n=>{if(rem.indexOf(n)<0)rem.push(n)});x[1].forEach(n=>cov.add(n))}});
+rem.forEach(n=>cov.delete(n));
+const pl=U.filter(n=>s.has(n)&&!cov.has(n));
+return at.concat(rem.map(n=>"-"+n),pl).join(",")}
+
+function plain(s){const o=[];S.forEach(x=>x[1].forEach(n=>{if(s.has(n)&&o.indexOf(n)<0)o.push(n)}));return o.join(", ")}
+function memo(s){return S.map(x=>[x[0],x[1].filter(n=>s.has(n))]).filter(x=>x[1].length).map(x=>x[0]+"\n"+x[1].map(n=>"- [ ] "+n).join("\n")).join("\n\n")}
+function fmt(s,m){return m==="plain"?plain(s):m==="memo"?memo(s):syn(s)}
+
+function cp(t){
+try{navigator.clipboard.writeText(t)}catch(e){}
+const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();
+try{document.execCommand("copy")}catch(e){}
+a.remove();note="已複製";const n=document.getElementById("nt");if(n)n.textContent=note}
+
+function btn(l,on,f){return '<button class="'+(on?"s":"")+'" onclick="'+f+'">'+l+'</button>'}
+
+function render(){
+document.getElementById("tb").innerHTML=["文字代碼"].concat(T.map(t=>t[0])).map((n,i)=>'<button class="'+(i===tab?"on":"")+'" onclick="tab='+i+';note=\'\';render()">'+n+'</button>').join("");
+const pg=document.getElementById("pg");
+if(tab===0){
+const ed=mode==="syn";
+pg.innerHTML='<div class="row"><span class="lb">目前清單</span><div class="seg">'+btn("純文字",mode==="plain","mode=\'plain\';render()")+btn("語法",mode==="syn","mode=\'syn\';render()")+btn("備忘錄",mode==="memo","mode=\'memo\';render()")+'</div></div>'
++'<div style="margin-top:8px"><textarea id="ta" '+(ed?'placeholder="輸入語法，例如 @水域,-蛙鞋,哨子"':'readonly')+'></textarea></div>'
++'<div class="row"><span class="lb" id="st"></span></div>'
++'<div class="row"><span class="lb">代碼</span><input id="cd" style="flex:1;min-width:120px;font-family:ui-monospace,Menlo,monospace"></div>'
++'<div class="row"><button onclick="cp(fmt(sel,mode))">複製</button><button onclick="sel=new Set();render()">清除</button><span class="lb" id="nt">'+note+'</span></div>'
++'<hr><div class="row"><b style="font-weight:500">暫存</b><input id="nm" placeholder="名稱，如 小明七月營隊" style="flex:1;min-width:140px"><button onclick="sv()">暫存目前清單</button></div>'
++'<div id="sv">'+saved.map((x,i)=>'<div class="cd"><div onclick="ld('+i+')"><b>'+x.n+'</b><span>'+(syn(x.s)||"（空）")+'</span></div><button aria-label="刪除" onclick="saved.splice('+i+',1);render()">×</button></div>').join("")+'</div>'
++(saved.length?'<div class="row"><span class="lb">全部複製為</span><div class="seg">'+btn("純文字",cmode==="plain","cmode=\'plain\';render()")+btn("語法",cmode==="syn","cmode=\'syn\';render()")+btn("備忘錄",cmode==="memo","cmode=\'memo\';render()")+'</div><button onclick="cpAll()">複製全部</button></div>':'');
+const ta=document.getElementById("ta");ta.value=fmt(sel,mode);
+if(ed)ta.oninput=function(){const r=parse(ta.value);sel=r[0];upd(r[1])};
+const ci=document.getElementById("cd");ci.value=code(sel);
+ci.oninput=function(){sel=decode(ci.value);ta.value=fmt(sel,mode);upd(0,true)};
+upd(0)
+}else{
+const t=T[tab-1];
+pg.innerHTML=t[1].map(s=>{const k=S.findIndex(x=>x[0]===s[0]);
+return '<div class="sh"><b>'+s[0]+'</b><button onclick="selSec('+k+',true)">@'+s[0]+'</button><button onclick="selSec('+k+',false)">清除</button></div><div class="pl">'+S[k][1].map(n=>'<button class="'+(sel.has(n)?"s":"")+'" onclick="tg(\''+n+'\')">'+n+'</button>').join("")+'</div>'}).join("")
+}}
+
+function upd(bad,skipCode){
+const st=document.getElementById("st");
+if(st)st.textContent="已選 "+sel.size+" 項"+(bad?"，"+bad+" 個語法無法辨識":"");
+const c=document.getElementById("cd");if(c&&!skipCode)c.value=code(sel)}
+function tg(n){sel.has(n)?sel.delete(n):sel.add(n);render()}
+function selSec(k,on){S[k][1].forEach(n=>on?sel.add(n):sel.delete(n));render()}
+function sv(){const v=document.getElementById("nm").value.trim();saved.push({n:v||"未命名 "+(saved.length+1),s:new Set(sel)});render()}
+function ld(i){sel=new Set(saved[i].s);render()}
+function cpAll(){cp(saved.map(x=>x.n+"\n"+fmt(x.s,cmode)).join("\n*\n"))}
+render();
+</script>
+</body>
+</html>
