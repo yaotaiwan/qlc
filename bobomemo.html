@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>提醒事項整理</title>
+<style>
+:root{
+  --bg:#F0EADC; --surface:#E6DECB; --text:#2B2018; --muted:#6F655A;
+  --line:#B9AE9A; --line-strong:#3B2A20;
+  --b:#D8D5CD; --bt:#2B2623;
+  --st:#D4AF58; --stt:#2E2109;
+  --sel:#7A2432; --selt:#F6EBDD;
+  --accent:#7A2432;
+  --act:rgba(184,137,46,.18); --actline:#B8892E;
+  --btnbg:#3B2A20; --btnt:#F0EADC;
+  --r:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#171311; --surface:#221C18; --text:#E9E0D1; --muted:#9C9285;
+    --line:#4B4239; --line-strong:#8C7A63;
+    --b:#363A3F; --bt:#E6DFD2;
+    --st:#8A6A20; --stt:#F6E7BC;
+    --sel:#A33A4A; --selt:#FFF3E6;
+    --accent:#C45A69;
+    --act:rgba(199,154,59,.16); --actline:#C79A3B;
+    --btnbg:#C79A3B; --btnt:#171311;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:15px/1.6 -apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+#app{max-width:520px;margin:0 auto;padding:12px 12px 90px}
+button{font:inherit;font-size:14px;color:var(--text);background:transparent;border:0;padding:0 14px;height:34px;cursor:pointer}
+.top{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.seg{display:flex;border:1px solid var(--line-strong);border-radius:var(--r);overflow:hidden}
+.seg button.on{background:var(--btnbg);color:var(--btnt)}
+.copy{margin-left:auto;border:1px solid var(--line-strong);border-radius:var(--r)}
+textarea{width:100%;min-height:62vh;resize:vertical;background:var(--surface);color:var(--text);
+  border:1px solid var(--line);border-radius:var(--r);padding:10px;font:inherit;line-height:1.7}
+.cap{font-size:12px;letter-spacing:.06em;color:var(--muted);margin:12px 0 4px}
+.solid{border-top:2px solid var(--line-strong);margin-top:14px}
+.row{display:flex;gap:8px;padding:8px 8px;border-bottom:1px dashed var(--line);
+  border-left:3px solid transparent;cursor:pointer}
+.row.act{background:var(--act);border-left-color:var(--actline)}
+.moving .row{outline:1px dashed var(--accent);outline-offset:-3px}
+.ct{flex:1;min-width:0}
+.lb{flex:0 0 60px;font-size:13px;color:var(--muted);line-height:2;white-space:nowrap}
+.today .lb{color:var(--accent);font-weight:600}
+.fold{font-size:12px;color:var(--muted);padding:6px 8px}
+.empty{font-size:13px;color:var(--muted)}
+.b{display:inline-block;padding:3px 10px;margin:3px 4px 3px 0;border-radius:12px;
+  font-size:14px;line-height:1.5;background:var(--b);color:var(--bt);cursor:pointer;word-break:break-all}
+.b.st{background:var(--st);color:var(--stt)}
+.b.sel{background:var(--sel);color:var(--selt)}
+.tr{display:flex;overflow-x:auto;gap:2px;padding:4px 0;white-space:nowrap;min-height:36px}
+.tr .b{flex:0 0 auto}
+#bar{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;gap:4px;
+  align-items:center;background:var(--btnbg);color:var(--btnt);border-radius:var(--r);padding:4px 10px;margin-top:12px;font-size:14px}
+#bar button{color:inherit;border:1px solid currentColor;border-radius:8px;height:30px;padding:0 10px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="top">
+    <div class="seg"><button data-mode="text">文字</button><button data-mode="bubble">泡泡</button></div>
+    <button class="copy" id="copy">複製</button>
+  </div>
+  <textarea id="tx" spellcheck="false" placeholder="貼上提醒事項&#10;項目用 / 分開，* 放在項目前面&#10;日程每天一行　10/31五：事項/事項"></textarea>
+  <div id="bv">
+    <div id="list"></div>
+    <div id="bar" style="display:none"></div>
+    <div id="tray"></div>
+  </div>
+</div>
+<script>
+const WD=['日','一','二','三','四','五','六'];
+const KEY='reminders-helper-v1';
+let n=0;const nid=()=>'i'+(++n),rid=()=>'r'+(++n);
+const S={mode:'text',top:[],sched:[],tray:[],sel:new Set(),move:false,active:null};
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const ts=a=>new Date(a[0],a[1],a[2]);
+const mk=d=>[d.getFullYear(),d.getMonth(),d.getDate()];
+const key=a=>a.join('-');
+const rows=()=>S.top.concat(S.sched);
+
+function scan(str,fallback){
+  const items=[];let cur='';
+  const push=()=>{const t=cur.trim();if(t)items.push({id:nid(),t});cur='';};
+  for(let i=0;i<str.length;i++){
+    const c=str[i],p=str[i-1]||'',q=str[i+1]||'';
+    if(c==='/'&&!(/\d/.test(p)&&/\d/.test(q)))push();else cur+=c;
+  }
+  push();
+  if(fallback&&items.length===1&&/\s/.test(items[0].t)&&!str.includes('/'))
+    return items[0].t.split(/\s+/).map(t=>({id:nid(),t}));
+  return items;
+}
+
+function parse(raw){
+  const re=/^\s*(?:(\d{1,2})\/)?(\d{1,2})\s*[(（]?([日一二三四五六])[)）]?(?=[\s:：]|$)\s*[:：]?\s*(.*)$/;
+  S.top=[];S.sched=[];S.sel=new Set();S.move=false;S.active=null;
+  raw.split(/\r?\n/).filter(l=>l.trim()).forEach(l=>{
+    const m=re.exec(l);
+    if(m)S.sched.push({id:rid(),mo:m[1]?+m[1]:null,d:+m[2],wk:WD.indexOf(m[3]),items:scan(m[4],true)});
+    else S.top.push({id:rid(),items:scan(l,false)});
+  });
+  const now=new Date(),y0=now.getFullYear(),m0=now.getMonth(),A=S.sched;
+  if(A.length){
+    const f=A[0];
+    const offs=f.mo?[[y0,f.mo-1],[y0+1,f.mo-1],[y0-1,f.mo-1]]:[[y0,m0],[y0,m0-1],[y0,m0+1]];
+    let base=null;
+    for(const [y,m] of offs){
+      const d=new Date(y,m,f.d);
+      if(d.getDate()===f.d&&d.getDay()===f.wk){base=d;break;}
+    }
+    if(!base)base=f.mo?new Date(y0,f.mo-1,f.d):new Date(y0,m0,f.d);
+    f.dt=mk(base);let prev=f.dt;
+    for(let i=1;i<A.length;i++){
+      const r=A[i];let y=prev[0],m=prev[1];
+      if(r.mo){if(r.mo-1<m)y++;m=r.mo-1;}else if(r.d<prev[2])m++;
+      r.dt=mk(new Date(y,m,r.d));prev=r.dt;
+    }
+  }
+  const td=new Date(y0,m0,now.getDate());
+  for(let k=0;k<7;k++){
+    const d=new Date(td);d.setDate(td.getDate()+k);const dt=mk(d);
+    if(!S.sched.some(r=>key(r.dt)===key(dt)))S.sched.push({id:rid(),dt,items:[]});
+  }
+  S.sched.sort((a,b)=>ts(a.dt)-ts(b.dt));
+}
+
+const lab=dt=>(dt[1]+1)+'/'+dt[2]+WD[ts(dt).getDay()];
+
+function serialize(){
+  const L=[];
+  S.top.forEach(r=>{if(r.items.length)L.push(r.items.map(i=>i.t).join('/'));});
+  S.sched.forEach(r=>L.push(lab(r.dt)+'：'+r.items.map(i=>i.t).join('/')));
+  return L.join('\n');
+}
+
+function persist(){
+  try{localStorage.setItem(KEY,S.mode==='text'?$('tx').value:serialize());}catch(e){}
+}
+
+const bub=it=>'<span class="b'+(it.t.startsWith('*')?' st':'')+(S.sel.has(it.id)?' sel':'')+
+  '" data-i="'+it.id+'">'+esc(it.t)+'</span>';
+
+function rowHTML(r,sched,today){
+  const cls='row'+(S.active===r.id?' act':'')+(today?' today':'');
+  return '<div class="'+cls+'" data-r="'+r.id+'">'+(sched?'<div class="lb">'+lab(r.dt)+'</div>':'')+
+    '<div class="ct">'+(r.items.map(bub).join('')||'<span class="empty">空</span>')+'</div></div>';
+}
+
+function render(){
+  document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('on',b.dataset.mode===S.mode));
+  const isText=S.mode==='text';
+  $('tx').style.display=isText?'block':'none';
+  $('bv').style.display=isText?'none':'block';
+  $('copy').style.display=isText?'inline-block':'none';
+  if(isText)return;
+  const now=new Date(),td=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const end=new Date(td);end.setDate(td.getDate()+6);
+  const past=S.sched.filter(r=>ts(r.dt)<td);
+  const win=S.sched.filter(r=>ts(r.dt)>=td&&ts(r.dt)<=end);
+  const fut=S.sched.filter(r=>ts(r.dt)>end);
+  const fold=(a,w)=>a.length?'<div class="fold">'+w+' '+a.length+' 天（'+lab(a[0].dt)+
+    (a.length>1?' – '+lab(a[a.length-1].dt):'')+'）仍在文字裡</div>':'';
+  $('list').className=S.move?'moving':'';
+  $('list').innerHTML='<div class="cap">未定</div>'+
+    S.top.map(r=>rowHTML(r,false,false)).join('')+
+    '<div class="solid"></div><div class="cap">接下來 7 天</div>'+fold(past,'已過')+
+    win.map(r=>rowHTML(r,true,+ts(r.dt)===+td)).join('')+fold(fut,'還有');
+  const bar=$('bar');
+  if(S.move){
+    bar.style.display='flex';
+    bar.innerHTML='<span style="flex:1">點列放到最後，點泡泡插在它前面</span><button data-act="cancel">取消</button>';
+  }else if(S.sel.size){
+    bar.style.display='flex';
+    bar.innerHTML='<span style="margin-right:6px">已選 '+S.sel.size+'</span>'+
+      '<button data-act="mv">搬移</button><button data-act="star">*</button>'+
+      '<button data-act="del">刪除</button><button data-act="cancel">取消</button>';
+  }else bar.style.display='none';
+  $('tray').innerHTML='<div class="cap">刪除區（保留 10 個，向右滑看舊的）</div><div class="tr">'+
+    (S.tray.length?S.tray.map(o=>'<span class="b'+(o.it.t.startsWith('*')?' st':'')+
+      '" data-t="'+o.it.id+'">'+esc(o.it.t)+'</span>').join(''):'<span class="empty">空</span>')+'</div>';
+  persist();
+}
+
+function find(id){
+  for(const r of rows()){const i=r.items.findIndex(x=>x.id===id);if(i>-1)return{r,i};}
+  return null;
+}
+
+function doMove(beforeId,rowId){
+  let target,ref=null;
+  if(beforeId){
+    if(S.sel.has(beforeId))return;
+    const f=find(beforeId);target=f.r;ref=f.r.items[f.i];
+  }else target=rows().find(r=>r.id===rowId);
+  const moving=[];
+  rows().forEach(r=>{r.items=r.items.filter(it=>{if(S.sel.has(it.id)){moving.push(it);return false;}return true;});});
+  target.items.splice(ref?target.items.indexOf(ref):target.items.length,0,...moving);
+  S.sel=new Set();S.move=false;S.active=target.id;render();
+}
+
+function setMode(m){
+  if(m===S.mode)return;
+  if(m==='bubble')parse($('tx').value);else $('tx').value=serialize();
+  S.mode=m;render();persist();
+}
+
+$('app').addEventListener('click',e=>{
+  const t=e.target;
+  if(t.closest('textarea'))return;
+  const mode=t.closest('[data-mode]');
+  if(mode){setMode(mode.dataset.mode);return;}
+  if(t.closest('#copy')){
+    const o=$('tx');o.select();let ok=false;
+    try{navigator.clipboard.writeText(o.value);ok=true;}catch(x){}
+    if(!ok){try{document.execCommand('copy');}catch(x){}}
+    $('copy').textContent='已複製';setTimeout(()=>{$('copy').textContent='複製';},1500);
+    return;
+  }
+  const act=t.closest('[data-act]');
+  if(act){
+    const k=act.dataset.act;
+    if(k==='cancel'){S.sel=new Set();S.move=false;}
+    else if(k==='mv')S.move=true;
+    else if(k==='star'){
+      rows().forEach(r=>r.items.forEach(it=>{
+        if(S.sel.has(it.id))it.t=it.t.startsWith('*')?it.t.slice(1):'*'+it.t;
+      }));
+    }else if(k==='del'){
+      rows().forEach(r=>{r.items=r.items.filter(it=>{
+        if(S.sel.has(it.id)){S.tray.unshift({it,from:r.id});return false;}return true;
+      });});
+      S.tray=S.tray.slice(0,10);S.sel=new Set();
+    }
+    render();return;
+  }
+  const tb=t.closest('[data-t]');
+  if(tb){
+    const i=S.tray.findIndex(o=>o.it.id===tb.dataset.t);if(i<0)return;
+    const all=rows();
+    const row=all.find(r=>r.id===S.active)||all.find(r=>r.id===S.tray[i].from)||S.top[0]||all[0];
+    row.items.push(S.tray[i].it);S.tray.splice(i,1);render();return;
+  }
+  const b=t.closest('.b[data-i]');
+  if(b){
+    const id=b.dataset.i;
+    if(S.move){doMove(id,null);return;}
+    if(S.sel.has(id))S.sel.delete(id);else S.sel.add(id);
+    render();return;
+  }
+  const r=t.closest('.row');
+  if(r){
+    if(S.move){doMove(null,r.dataset.r);return;}
+    S.active=S.active===r.dataset.r?null:r.dataset.r;render();
+  }
+});
+
+$('tx').addEventListener('input',persist);
+
+(function init(){
+  let saved=null;
+  try{saved=localStorage.getItem(KEY);}catch(e){}
+  if(saved&&saved.trim()){$('tx').value=saved;parse(saved);S.mode='bubble';}
+  render();
+})();
+</script>
+</body>
+</html>
